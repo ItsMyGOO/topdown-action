@@ -10,11 +10,31 @@ config_version=5
 
 [application]
 
-config/name="Godot Game Template"
-config/description="A minimal Godot 4 C# template repository for new game projects."
+config/name="Top-Down Pixel Action Framework"
+config/description="A Godot 4 C# top-down 2D pixel action project foundation."
 config/features=PackedStringArray("4.2", "C#")
 config/icon="res://icon.svg"
+run/main_scene="res://Game/Scenes/Main/Main.tscn"
 
 [dotnet]
 
 project/assembly_name="GodotGameTemplate"
+
+[input]
+
+move_left={
+"deadzone": 0.2,
+"events": [Object(InputEventKey,"device":-1,"window_id":0,"alt_pressed":false,"shift_pressed":false,"ctrl_pressed":false,"meta_pressed":false,"pressed":false,"keycode":0,"physical_keycode":65,"key_label":0,"unicode":97,"location":0,"echo":false,"script":null), Object(InputEventKey,"device":-1,"window_id":0,"alt_pressed":false,"shift_pressed":false,"ctrl_pressed":false,"meta_pressed":false,"pressed":false,"keycode":0,"physical_keycode":16777231,"key_label":0,"unicode":0,"location":0,"echo":false,"script":null)]
+}
+move_right={
+"deadzone": 0.2,
+"events": [Object(InputEventKey,"device":-1,"window_id":0,"alt_pressed":false,"shift_pressed":false,"ctrl_pressed":false,"meta_pressed":false,"pressed":false,"keycode":0,"physical_keycode":68,"key_label":0,"unicode":100,"location":0,"echo":false,"script":null), Object(InputEventKey,"device":-1,"window_id":0,"alt_pressed":false,"shift_pressed":false,"ctrl_pressed":false,"meta_pressed":false,"pressed":false,"keycode":0,"physical_keycode":16777233,"key_label":0,"unicode":0,"location":0,"echo":false,"script":null)]
+}
+move_up={
+"deadzone": 0.2,
+"events": [Object(InputEventKey,"device":-1,"window_id":0,"alt_pressed":false,"shift_pressed":false,"ctrl_pressed":false,"meta_pressed":false,"pressed":false,"keycode":0,"physical_keycode":87,"key_label":0,"unicode":119,"location":0,"echo":false,"script":null), Object(InputEventKey,"device":-1,"window_id":0,"alt_pressed":false,"shift_pressed":false,"ctrl_pressed":false,"meta_pressed":false,"pressed":false,"keycode":0,"physical_keycode":16777232,"key_label":0,"unicode":0,"location":0,"echo":false,"script":null)]
+}
+move_down={
+"deadzone": 0.2,
+"events": [Object(InputEventKey,"device":-1,"window_id":0,"alt_pressed":false,"shift_pressed":false,"ctrl_pressed":false,"meta_pressed":false,"pressed":false,"keycode":0,"physical_keycode":83,"key_label":0,"unicode":115,"location":0,"echo":false,"script":null), Object(InputEventKey,"device":-1,"window_id":0,"alt_pressed":false,"shift_pressed":false,"ctrl_pressed":false,"meta_pressed":false,"pressed":false,"keycode":0,"physical_keycode":16777234,"key_label":0,"unicode":0,"location":0,"echo":false,"script":null)]
+}

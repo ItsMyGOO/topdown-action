@@ -4,6 +4,21 @@
 
 本仓库是一个模板，而非游戏玩法库。它的设计范围仅限于项目结构、Git 默认配置、文档以及基础的 Godot 项目文件。
 
+## 当前首个玩法切片
+
+当前仓库已经开始承载这个项目的第一批核心玩法基础设施，目标是为一个俯视角 2D 像素动作游戏提供可持续扩展的角色控制框架：
+
+- 八方向连续移动
+- `输入 -> 意图 -> 逻辑 -> 表现` 的解耦链路
+- 可复用的轻量状态机基础设施
+- 位于 `Docs/` 下的简明架构文档
+
+相关文档：
+
+- `Docs/Architecture/overall-architecture.md`
+- `Docs/Modules/player-controller.md`
+- `Docs/Modules/state-machine.md`
+
 ## 目录结构
 
 ```text
@@ -46,6 +61,21 @@ addons/
 A minimal **Godot 4 + C#** GitHub Template Repository for creating new game projects.
 
 This repository is a template, not a gameplay library. It intentionally stops at project structure, Git defaults, documentation, and basic Godot project files.
+
+## Current First Gameplay Slice
+
+The repository now starts to host the first reusable gameplay foundation for a top-down 2D pixel action game:
+
+- eight-direction continuous movement
+- a decoupled `input -> intent -> logic -> presentation` flow
+- a lightweight reusable state machine foundation
+- concise architecture docs under `Docs/`
+
+Key docs:
+
+- `Docs/Architecture/overall-architecture.md`
+- `Docs/Modules/player-controller.md`
+- `Docs/Modules/state-machine.md`
 
 ## Directory Layout
 

@@ -1,0 +1,25 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://Game/Gameplay/Player/PlayerController.cs" id="1_a8o2x"]
+[ext_resource type="Script" path="res://Game/Gameplay/Player/PlayerView.cs" id="2_hi4c4"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_c9bme"]
+radius = 8.0
+
+[node name="Player" type="CharacterBody2D"]
+script = ExtResource("1_a8o2x")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_c9bme")
+
+[node name="View" type="Node2D" parent="."]
+script = ExtResource("2_hi4c4")
+
+[node name="Body" type="Polygon2D" parent="View"]
+polygon = PackedVector2Array(0, -7, 6, 6, 0, 3, -6, 6)
+color = Color(0.639216, 0.85098, 1, 1)
+
+[node name="Camera2D" type="Camera2D" parent="."]
+enabled = true
+position_smoothing_enabled = true
+position_smoothing_speed = 8.0
