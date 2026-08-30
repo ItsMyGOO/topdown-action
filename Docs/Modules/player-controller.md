@@ -19,17 +19,32 @@
 ## 相关模块
 
 - `PlayerInputAdapter`
-  读取 Godot 输入映射中的 `move_left`、`move_right`、`move_up`、`move_down`
+  读取 Godot 输入映射中的移动与 `attack_primary` 攻击输入
 - `ActorIntent`
   表达当前帧角色控制意图
 - `ActorContext`
-  保存当前运行时状态，例如意图、速度、朝向和移动许可
+  保存当前运行时状态，例如意图、速度、朝向、攻击朝向和行为许可
 - `ActorMotor`
   负责计算加速、减速和最大速度
-- `PlayerIdleState` / `PlayerMoveState`
-  负责当前首版的状态更新
+- `PlayerIdleState` / `PlayerMoveState` / `PlayerAttackState`
+  负责移动与攻击状态更新
+- `PlayerAttackHitbox`
+  负责命中窗口中的场景碰撞检测与命中去重
 - `PlayerView`
   负责把朝向等逻辑结果同步到表现节点
+
+## 攻击链路
+
+玩家攻击沿用同一条控制主线：
+
+`输入 -> ActorIntent -> PlayerAttackState -> PlayerAttackHitbox -> IHitReceiver`
+
+其中：
+
+- `PlayerInputAdapter` 负责产生单帧攻击请求
+- `PlayerAttackState` 负责锁定朝向、控制时长和命中窗口
+- `PlayerAttackHitbox` 负责在窗口内启停检测，并把命中转发给受击接口
+- `IHitReceiver` 负责把受击反馈与玩家攻击状态解耦
 
 ## 为什么这样拆
 

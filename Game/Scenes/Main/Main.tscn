@@ -1,8 +1,25 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=4 format=3]
 
 [ext_resource type="PackedScene" path="res://Game/Scenes/Player/Player.tscn" id="1_10aah"]
+[ext_resource type="Script" path="res://Game/Gameplay/TrainingDummy/TrainingDummyController.cs" id="2_kw5cg"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_n2vdl"]
+size = Vector2(16, 24)
 
 [node name="Main" type="Node2D"]
 
 [node name="Player" parent="." instance=ExtResource("1_10aah")]
 position = Vector2(160, 90)
+
+[node name="TrainingDummy" type="Node2D" parent="."]
+position = Vector2(220, 90)
+script = ExtResource("2_kw5cg")
+
+[node name="Body" type="Polygon2D" parent="TrainingDummy"]
+polygon = PackedVector2Array(-8, -12, 8, -12, 8, 12, -8, 12)
+color = Color(0.968627, 0.760784, 0.360784, 1)
+
+[node name="Hurtbox" type="Area2D" parent="TrainingDummy"]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="TrainingDummy/Hurtbox"]
+shape = SubResource("RectangleShape2D_n2vdl")

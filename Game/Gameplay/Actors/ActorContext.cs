@@ -12,5 +12,13 @@ public sealed class ActorContext
 
     public bool CanMove { get; set; } = true;
 
+    public bool CanAttack { get; set; } = true;
+
+    public bool IsAttacking { get; set; }
+
+    public Vector2 AttackFacing { get; set; } = Vector2.Down;
+
+    public bool AttackFinishedThisFrame { get; set; }
+
     public bool HasMoveInput => CanMove && Intent.HasMoveInput;
 }

@@ -8,6 +8,7 @@ public sealed class PlayerInputAdapter : IIntentProvider
     public ActorIntent GetIntent()
     {
         var move = Input.GetVector("move_left", "move_right", "move_up", "move_down");
-        return new ActorIntent(move);
+        var attackPressed = Input.IsActionJustPressed("attack_primary");
+        return new ActorIntent(move, attackPressed);
     }
 }
