@@ -17,11 +17,11 @@ public interface IPlayerAttackHitbox
 
 public sealed class PlayerAttackState : IState<ActorContext>
 {
-    private readonly PlayerAttackConfig _config;
+    private readonly IPlayerAttackConfig _config;
     private readonly IPlayerAttackHitbox _hitbox;
     private double _elapsed;
 
-    public PlayerAttackState(PlayerAttackConfig config, IPlayerAttackHitbox hitbox)
+    public PlayerAttackState(IPlayerAttackConfig config, IPlayerAttackHitbox hitbox)
     {
         _config = config ?? throw new ArgumentNullException(nameof(config));
         _hitbox = hitbox ?? throw new ArgumentNullException(nameof(hitbox));

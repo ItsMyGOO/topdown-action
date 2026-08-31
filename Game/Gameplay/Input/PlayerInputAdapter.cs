@@ -7,8 +7,8 @@ public sealed class PlayerInputAdapter : IIntentProvider
 {
     public ActorIntent GetIntent()
     {
-        var move = Input.GetVector("move_left", "move_right", "move_up", "move_down");
-        var attackPressed = Input.IsActionJustPressed("attack_primary");
+        var move = Godot.Input.GetVector("move_left", "move_right", "move_up", "move_down");
+        var attackPressed = Godot.Input.IsActionJustPressed("attack_primary");
         return new ActorIntent(move, attackPressed);
     }
 }

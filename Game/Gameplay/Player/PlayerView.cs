@@ -12,6 +12,6 @@ public partial class PlayerView : Node2D
             return;
         }
 
-        Rotation = context.Facing.Angle();
+        Rotation = PlayerViewRotation.ResolveRotation(context.Facing);
     }
 }

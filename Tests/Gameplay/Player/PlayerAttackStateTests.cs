@@ -16,7 +16,7 @@ public sealed class PlayerAttackStateTests
             Intent = new ActorIntent(Vector2.Up, true),
         };
 
-        var config = new PlayerAttackConfig();
+        var config = new FakeAttackConfig();
         var hitbox = new FakeAttackHitbox();
         var state = new PlayerAttackState(config, hitbox);
 
@@ -36,7 +36,7 @@ public sealed class PlayerAttackStateTests
             Intent = new ActorIntent(Vector2.Right, true),
         };
 
-        var config = new PlayerAttackConfig
+        var config = new FakeAttackConfig
         {
             TotalDuration = 0.30f,
             HitboxStartTime = 0.10f,
@@ -61,7 +61,7 @@ public sealed class PlayerAttackStateTests
             Intent = new ActorIntent(Vector2.Right, true),
         };
 
-        var config = new PlayerAttackConfig
+        var config = new FakeAttackConfig
         {
             TotalDuration = 0.20f,
             HitboxStartTime = 0.05f,
@@ -95,5 +95,18 @@ public sealed class PlayerAttackStateTests
         public void ResetHitTargets()
         {
         }
+    }
+
+    private sealed class FakeAttackConfig : IPlayerAttackConfig
+    {
+        public float TotalDuration { get; init; } = 0.25f;
+
+        public float HitboxStartTime { get; init; } = 0.08f;
+
+        public float HitboxEndTime { get; init; } = 0.16f;
+
+        public float AttackRange { get; init; } = 18f;
+
+        public string AttackId { get; init; } = "player_basic_slash";
     }
 }
