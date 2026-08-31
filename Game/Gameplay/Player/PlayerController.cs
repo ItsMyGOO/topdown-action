@@ -1,9 +1,12 @@
 using System;
+using System.Linq;
 using Godot;
 using GodotGameTemplate.Config.Player;
 using GodotGameTemplate.Gameplay.Actors;
+using GodotGameTemplate.Gameplay.Combat.Targeting;
 using GodotGameTemplate.Gameplay.Common.StateMachine;
 using GodotGameTemplate.Gameplay.Input;
+using GodotGameTemplate.Gameplay.Navigation;
 using GodotGameTemplate.Gameplay.Player.States;
 
 namespace GodotGameTemplate.Gameplay.Player;
@@ -22,10 +25,17 @@ public partial class PlayerController : CharacterBody2D
     [Export]
     public PlayerView? View { get; set; }
 
+    [Export]
+    public ClickToMoveController? ClickToMove { get; set; }
+
     private readonly ActorContext _context = new();
     private readonly IIntentProvider _input = new PlayerInputAdapter();
     private readonly PlayerIdleState _idleState = new();
     private readonly PlayerMoveState _moveState = new();
+    private readonly TargetingService _targeting = new();
+    private readonly ClickToMoveModel _clickToMoveModel = new();
+
+    private bool _wasLeftMouseDown;
 
     private PlayerAttackState _attackState = default!;
     private StateMachine<ActorContext> _stateMachine = default!;
@@ -50,6 +60,13 @@ public partial class PlayerController : CharacterBody2D
         _stateMachine = new StateMachine<ActorContext>(_context);
         _attackState = new PlayerAttackState(AttackConfig, AttackHitbox);
         _stateMachine.ChangeState(_idleState);
+
+        ClickToMove ??= GetNodeOrNull<ClickToMoveController>("ClickToMove");
+        if (ClickToMove != null)
+        {
+            ClickToMove.MaxSpeed = Config.MoveSpeed;
+        }
+
         View?.Sync(_context);
     }
 
@@ -61,9 +78,20 @@ public partial class PlayerController : CharacterBody2D
     public override void _PhysicsProcess(double delta)
     {
         _context.AttackFinishedThisFrame = false;
-        _context.Intent = _input.GetIntent();
 
         Config ??= new PlayerConfig();
+
+        if (ClickToMove != null)
+        {
+            ClickToMove.MaxSpeed = Config.MoveSpeed;
+        }
+
+        HandleLeftClick();
+
+        _context.Intent = _input.GetIntent();
+
+        ApplyClickToMoveIntentOverride();
+
         if (AttackHitbox != null)
         {
             AttackHitbox.AttackId = AttackConfig!.AttackId;
@@ -106,5 +134,71 @@ public partial class PlayerController : CharacterBody2D
 
         _context.Velocity = Velocity;
         View?.Sync(_context);
+    }
+
+    private void HandleLeftClick()
+    {
+        var isDown = Input.IsMouseButtonPressed(MouseButton.Left);
+        var justPressed = isDown && !_wasLeftMouseDown;
+        _wasLeftMouseDown = isDown;
+
+        if (!justPressed)
+        {
+            return;
+        }
+
+        var mousePos = GetGlobalMousePosition();
+        var space = GetWorld2D().DirectSpaceState;
+
+        var query = new PhysicsPointQueryParameters2D
+        {
+            Position = mousePos,
+            CollideWithAreas = true,
+            CollideWithBodies = true,
+        };
+
+        var results = space.IntersectPoint(query, maxResults: 16);
+        var target = results
+            .Select(r => r["collider"].AsGodotObject())
+            .OfType<Node>()
+            .FirstOrDefault(n => n.IsInGroup("targetable"));
+
+        if (target != null)
+        {
+            _targeting.SetTarget(target.GetInstanceId());
+            _clickToMoveModel.ClearDestination();
+            ClickToMove?.Stop();
+        }
+        else
+        {
+            _targeting.ClearTarget();
+            _clickToMoveModel.SetDestination(mousePos);
+            ClickToMove?.SetDestination(mousePos);
+        }
+    }
+
+    private void ApplyClickToMoveIntentOverride()
+    {
+        if (_clickToMoveModel.Destination == null)
+        {
+            return;
+        }
+
+        if (_clickToMoveModel.IsArrived(GlobalPosition))
+        {
+            _clickToMoveModel.ClearDestination();
+            ClickToMove?.Stop();
+            return;
+        }
+
+        // 键盘移动优先，只有在没有手动移动输入时才启用点击移动输出。
+        if (_context.Intent.HasMoveInput || ClickToMove == null)
+        {
+            return;
+        }
+
+        var desired = ClickToMove.DesiredVelocity;
+        var move = desired == Vector2.Zero ? Vector2.Zero : desired.Normalized();
+        _context.Intent = _context.Intent with { Move = move };
     }
 }
