@@ -14,7 +14,7 @@ config/name="Top-Down Pixel Action Framework"
 config/description="A Godot 4 C# top-down 2D pixel action project foundation."
 config/features=PackedStringArray("4.2", "C#")
 config/icon="res://icon.svg"
-run/main_scene="res://Game/Scenes/Main/Main.tscn"
+run/main_scene="res://Game/Scenes/World/WorldRoot.tscn"
 
 [dotnet]
 
