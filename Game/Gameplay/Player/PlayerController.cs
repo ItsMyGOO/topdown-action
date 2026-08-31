@@ -138,7 +138,7 @@ public partial class PlayerController : CharacterBody2D
 
     private void HandleLeftClick()
     {
-        var isDown = Input.IsMouseButtonPressed(MouseButton.Left);
+        var isDown = Godot.Input.IsMouseButtonPressed(MouseButton.Left);
         var justPressed = isDown && !_wasLeftMouseDown;
         _wasLeftMouseDown = isDown;
 
