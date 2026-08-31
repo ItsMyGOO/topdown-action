@@ -39,7 +39,9 @@ public partial class PlayerController : CharacterBody2D
 
         if (AttackHitbox == null)
         {
-            throw new InvalidOperationException("PlayerController requires an AttackHitbox child node.");
+            throw new InvalidOperationException(
+                "PlayerController requires an AttackHitbox child node."
+            );
         }
 
         AttackHitbox.SourceNode = this;

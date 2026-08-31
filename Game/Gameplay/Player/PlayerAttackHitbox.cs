@@ -79,7 +79,11 @@ public partial class PlayerAttackHitbox : Area2D, IPlayerAttackHitbox
         receiver.ReceiveHit(new HitContext(SourceNode, _facing, AttackId));
     }
 
-    private static bool TryResolveReceiver(Node startNode, out Node receiverNode, out IHitReceiver receiver)
+    private static bool TryResolveReceiver(
+        Node startNode,
+        out Node receiverNode,
+        out IHitReceiver receiver
+    )
     {
         Node? current = startNode;
         while (current != null)

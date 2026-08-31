@@ -65,6 +65,7 @@ public sealed class StateMachineTests
 
         public void Update(object context, double delta) => _log.Add($"{_name}:Update");
 
-        public void PhysicsUpdate(object context, double delta) => _log.Add($"{_name}:PhysicsUpdate");
+        public void PhysicsUpdate(object context, double delta) =>
+            _log.Add($"{_name}:PhysicsUpdate");
     }
 }

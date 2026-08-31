@@ -18,9 +18,7 @@ public static class ActorMotor
             return currentVelocity;
         }
 
-        var direction = moveInput.LengthSquared() > 1f
-            ? moveInput.Normalized()
-            : moveInput;
+        var direction = moveInput.LengthSquared() > 1f ? moveInput.Normalized() : moveInput;
 
         var targetVelocity = direction * maxSpeed;
         var rate = direction == Vector2.Zero ? deceleration : acceleration;

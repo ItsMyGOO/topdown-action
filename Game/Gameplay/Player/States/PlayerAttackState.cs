@@ -48,9 +48,7 @@ public sealed class PlayerAttackState : IState<ActorContext>
         context.CanMove = true;
     }
 
-    public void Update(ActorContext context, double delta)
-    {
-    }
+    public void Update(ActorContext context, double delta) { }
 
     public void PhysicsUpdate(ActorContext context, double delta)
     {

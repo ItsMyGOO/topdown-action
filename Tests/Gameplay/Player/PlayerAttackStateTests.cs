@@ -83,18 +83,14 @@ public sealed class PlayerAttackStateTests
     {
         public bool IsActive { get; private set; }
 
-        public void Configure(Vector2 facing, float range)
-        {
-        }
+        public void Configure(Vector2 facing, float range) { }
 
         public void SetActive(bool active)
         {
             IsActive = active;
         }
 
-        public void ResetHitTargets()
-        {
-        }
+        public void ResetHitTargets() { }
     }
 
     private sealed class FakeAttackConfig : IPlayerAttackConfig

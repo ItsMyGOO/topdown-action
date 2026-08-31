@@ -5,17 +5,11 @@ namespace GodotGameTemplate.Gameplay.Player.States;
 
 public sealed class PlayerMoveState : IState<ActorContext>
 {
-    public void Enter(ActorContext context)
-    {
-    }
+    public void Enter(ActorContext context) { }
 
-    public void Exit(ActorContext context)
-    {
-    }
+    public void Exit(ActorContext context) { }
 
-    public void Update(ActorContext context, double delta)
-    {
-    }
+    public void Update(ActorContext context, double delta) { }
 
     public void PhysicsUpdate(ActorContext context, double delta)
     {
