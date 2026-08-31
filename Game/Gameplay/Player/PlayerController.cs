@@ -3,6 +3,7 @@ using System.Linq;
 using Godot;
 using GodotGameTemplate.Config.Player;
 using GodotGameTemplate.Gameplay.Actors;
+using GodotGameTemplate.Gameplay.Combat;
 using GodotGameTemplate.Gameplay.Combat.Targeting;
 using GodotGameTemplate.Gameplay.Common.StateMachine;
 using GodotGameTemplate.Gameplay.Input;
@@ -33,6 +34,7 @@ public partial class PlayerController : CharacterBody2D
     private readonly PlayerIdleState _idleState = new();
     private readonly PlayerMoveState _moveState = new();
     private readonly TargetingService _targeting = new();
+    private readonly CombatOrchestrator _combat = new();
     private readonly ClickToMoveModel _clickToMoveModel = new();
 
     private bool _wasLeftMouseDown;
@@ -80,15 +82,23 @@ public partial class PlayerController : CharacterBody2D
         _context.AttackFinishedThisFrame = false;
 
         Config ??= new PlayerConfig();
+        AttackConfig ??= new PlayerAttackConfig();
 
         if (ClickToMove != null)
         {
             ClickToMove.MaxSpeed = Config.MoveSpeed;
         }
 
-        HandleLeftClick();
+        var consumedLeftClick = HandleLeftClick();
 
         _context.Intent = _input.GetIntent();
+        if (consumedLeftClick)
+        {
+            _context.Intent = _context.Intent with { AttackPressed = false };
+        }
+
+        _combat.AttackRange = AttackConfig.AttackRange;
+        ApplyCombatOrchestration();
 
         ApplyClickToMoveIntentOverride();
 
@@ -136,7 +146,7 @@ public partial class PlayerController : CharacterBody2D
         View?.Sync(_context);
     }
 
-    private void HandleLeftClick()
+    private bool HandleLeftClick()
     {
         var isDown = Godot.Input.IsMouseButtonPressed(MouseButton.Left);
         var justPressed = isDown && !_wasLeftMouseDown;
@@ -144,7 +154,7 @@ public partial class PlayerController : CharacterBody2D
 
         if (!justPressed)
         {
-            return;
+            return false;
         }
 
         var mousePos = GetGlobalMousePosition();
@@ -161,19 +171,61 @@ public partial class PlayerController : CharacterBody2D
         var target = results
             .Select(r => r["collider"].AsGodotObject())
             .OfType<Node>()
-            .FirstOrDefault(n => n.IsInGroup("targetable"));
+            .Select(TryResolveTargetableNode)
+            .FirstOrDefault(n => n != null);
 
         if (target != null)
         {
             _targeting.SetTarget(target.GetInstanceId());
-            _clickToMoveModel.ClearDestination();
-            ClickToMove?.Stop();
+            ClearClickToMoveDestination();
         }
         else
         {
             _targeting.ClearTarget();
             _clickToMoveModel.SetDestination(mousePos);
             ClickToMove?.SetDestination(mousePos);
+        }
+
+        return true;
+    }
+
+    private void ApplyCombatOrchestration()
+    {
+        if (!TryResolveCurrentTarget(out var targetNode))
+        {
+            return;
+        }
+
+        var distance = GlobalPosition.DistanceTo(targetNode.GlobalPosition);
+        var decision = _combat.Evaluate(
+            new CombatSnapshot(
+                HasTarget: true,
+                IsTargetValid: true,
+                DistanceToTarget: distance,
+                IsAttacking: _context.IsAttacking,
+                CanAttack: _context.CanAttack
+            )
+        );
+
+        if (decision.ClearTarget)
+        {
+            _targeting.ClearTarget();
+            ClearClickToMoveDestination();
+            return;
+        }
+
+        if (decision.ShouldChase)
+        {
+            _clickToMoveModel.SetDestination(targetNode.GlobalPosition);
+            ClickToMove?.SetDestination(targetNode.GlobalPosition);
+            return;
+        }
+
+        ClearClickToMoveDestination();
+        if (decision.ShouldAttack)
+        {
+            FaceTowards(targetNode.GlobalPosition);
+            _context.Intent = _context.Intent with { AttackPressed = true };
         }
     }
 
@@ -200,5 +252,61 @@ public partial class PlayerController : CharacterBody2D
         var desired = ClickToMove.DesiredVelocity;
         var move = desired == Vector2.Zero ? Vector2.Zero : desired.Normalized();
         _context.Intent = _context.Intent with { Move = move };
+    }
+
+    private bool TryResolveCurrentTarget(out Node2D targetNode)
+    {
+        targetNode = null!;
+
+        if (_targeting.CurrentTargetInstanceId is not { } id)
+        {
+            return false;
+        }
+
+        if (
+            GodotObject.InstanceFromId(id) is not Node2D candidate
+            || !candidate.IsInGroup("targetable")
+        )
+        {
+            _targeting.ClearTarget();
+            ClearClickToMoveDestination();
+            return false;
+        }
+
+        targetNode = candidate;
+        return true;
+    }
+
+    private void ClearClickToMoveDestination()
+    {
+        _clickToMoveModel.ClearDestination();
+        ClickToMove?.Stop();
+    }
+
+    private void FaceTowards(Vector2 worldPosition)
+    {
+        var direction = worldPosition - GlobalPosition;
+        if (direction == Vector2.Zero)
+        {
+            return;
+        }
+
+        _context.Facing = direction.Normalized();
+    }
+
+    private static Node? TryResolveTargetableNode(Node startNode)
+    {
+        Node? current = startNode;
+        while (current != null)
+        {
+            if (current.IsInGroup("targetable"))
+            {
+                return current;
+            }
+
+            current = current.GetParent();
+        }
+
+        return null;
     }
 }

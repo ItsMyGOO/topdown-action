@@ -1,6 +1,7 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=3 format=3]
 
 [ext_resource type="PackedScene" path="res://Game/Scenes/Player/Player.tscn" id="1_4nq6a"]
+[ext_resource type="PackedScene" path="res://Game/Scenes/Enemies/BasicEnemy.tscn" id="2_f6v4d"]
 
 [node name="WorldRoot" type="Node2D"]
 
@@ -8,3 +9,6 @@
 
 [node name="Player" parent="YSort" instance=ExtResource("1_4nq6a")]
 position = Vector2(160, 90)
+
+[node name="Enemy" parent="YSort" instance=ExtResource("2_f6v4d")]
+position = Vector2(240, 100)
