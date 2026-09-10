@@ -9,6 +9,7 @@ using GodotGameTemplate.Gameplay.Combat;
 using GodotGameTemplate.Gameplay.Combat.Targeting;
 using GodotGameTemplate.Gameplay.Common.StateMachine;
 using GodotGameTemplate.Gameplay.Input;
+using GodotGameTemplate.Gameplay.Input.Commands;
 using GodotGameTemplate.Gameplay.Items;
 using GodotGameTemplate.Gameplay.Navigation;
 using GodotGameTemplate.Gameplay.Player.States;
@@ -36,7 +37,10 @@ public partial class PlayerController : CharacterBody2D
     public ClickToMoveController? ClickToMove { get; set; }
 
     private readonly ActorContext _context = new();
-    private readonly IIntentProvider _input = new PlayerInputAdapter();
+    private readonly IIntentProvider _keyboardInput = new PlayerInputAdapter();
+    private readonly ICommandProvider _mouseKeyboardInput = new MouseKeyboardInputAdapter();
+    private readonly GamepadInputAdapter _gamepadInput = new();
+    private readonly TouchInputAdapter _touchInput = new();
     private readonly PlayerIdleState _idleState = new();
     private readonly PlayerMoveState _moveState = new();
     private readonly PlayerEvadeState _evadeState = new();
@@ -61,6 +65,11 @@ public partial class PlayerController : CharacterBody2D
     /// 角色运行时上下文（用于 HUD 读取体力等信息）。
     /// </summary>
     public ActorContext ActorContext => _context;
+
+    /// <summary>
+    /// 触屏输入占位适配器。后续虚拟摇杆/按钮 UI 可直接把状态写入这里。
+    /// </summary>
+    public TouchInputAdapter TouchInput => _touchInput;
 
     private bool _wasLeftMouseDown;
 
@@ -125,12 +134,21 @@ public partial class PlayerController : CharacterBody2D
         }
 
         var consumedLeftClick = HandleLeftClick();
+        var keyboardIntent = _keyboardInput.GetIntent();
+        var mergedCommand = MergeCommands(
+            _mouseKeyboardInput.GetCommand(),
+            _gamepadInput.GetCommand(),
+            _touchInput.GetCommand()
+        );
 
-        _context.Intent = _input.GetIntent();
-        if (consumedLeftClick)
-        {
-            _context.Intent = _context.Intent with { AttackPressed = false };
-        }
+        _context.Intent = ResolveManualIntent(
+            mergedCommand,
+            keyboardIntent.Move,
+            _gamepadInput.MoveVector,
+            _touchInput.MoveVector,
+            keyboardIntent.AttackPressed,
+            consumedLeftClick
+        );
 
         _combat.AttackRange = AttackConfig.AttackRange;
         if (!_context.IsEvading)
@@ -146,7 +164,7 @@ public partial class PlayerController : CharacterBody2D
         }
 
         _context.Stamina.Tick((float)delta);
-        var evadePressed = Godot.Input.IsActionJustPressed("evade");
+        var evadePressed = mergedCommand.EvadePressed;
         if (evadePressed && !_context.IsAttacking && !_context.IsEvading)
         {
             if (_context.Stamina.TryConsume(EvadeStaminaCost))
@@ -334,6 +352,73 @@ public partial class PlayerController : CharacterBody2D
         var desired = ClickToMove.DesiredVelocity;
         var move = desired == Vector2.Zero ? Vector2.Zero : desired.Normalized();
         _context.Intent = _context.Intent with { Move = move };
+    }
+
+    private static PlayerCommand MergeCommands(
+        PlayerCommand mouseKeyboard,
+        PlayerCommand gamepad,
+        PlayerCommand touch
+    )
+    {
+        return new PlayerCommand(
+            ClickMoveDestination: mouseKeyboard.ClickMoveDestination
+                ?? gamepad.ClickMoveDestination
+                ?? touch.ClickMoveDestination,
+            ClickTargetInstanceId: mouseKeyboard.ClickTargetInstanceId
+                ?? gamepad.ClickTargetInstanceId
+                ?? touch.ClickTargetInstanceId,
+            EvadePressed: mouseKeyboard.EvadePressed || gamepad.EvadePressed || touch.EvadePressed,
+            InteractPressed: mouseKeyboard.InteractPressed
+                || gamepad.InteractPressed
+                || touch.InteractPressed,
+            ToggleInventoryPressed: mouseKeyboard.ToggleInventoryPressed
+                || gamepad.ToggleInventoryPressed
+                || touch.ToggleInventoryPressed,
+            PrimaryPressed: mouseKeyboard.PrimaryPressed
+                || gamepad.PrimaryPressed
+                || touch.PrimaryPressed,
+            SecondaryPressed: mouseKeyboard.SecondaryPressed
+                || gamepad.SecondaryPressed
+                || touch.SecondaryPressed,
+            Skill1Pressed: mouseKeyboard.Skill1Pressed
+                || gamepad.Skill1Pressed
+                || touch.Skill1Pressed,
+            Skill2Pressed: mouseKeyboard.Skill2Pressed
+                || gamepad.Skill2Pressed
+                || touch.Skill2Pressed,
+            Skill3Pressed: mouseKeyboard.Skill3Pressed
+                || gamepad.Skill3Pressed
+                || touch.Skill3Pressed,
+            Skill4Pressed: mouseKeyboard.Skill4Pressed
+                || gamepad.Skill4Pressed
+                || touch.Skill4Pressed
+        );
+    }
+
+    private static ActorIntent ResolveManualIntent(
+        PlayerCommand mergedCommand,
+        Vector2 keyboardMove,
+        Vector2 gamepadMove,
+        Vector2 touchMove,
+        bool keyboardAttackPressed,
+        bool consumedLeftClick
+    )
+    {
+        var move = keyboardMove;
+        if (move.LengthSquared() <= 0f)
+        {
+            move = gamepadMove.LengthSquared() > 0f ? gamepadMove : touchMove;
+        }
+
+        if (move.LengthSquared() > 1f)
+        {
+            move = move.Normalized();
+        }
+
+        var attackPressed =
+            !consumedLeftClick && (keyboardAttackPressed || mergedCommand.PrimaryPressed);
+
+        return new ActorIntent(move, attackPressed);
     }
 
     private bool TryResolveCurrentTarget(out Node2D targetNode)

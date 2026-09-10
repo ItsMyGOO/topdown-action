@@ -29,8 +29,8 @@ public sealed class MouseKeyboardInputAdapter : ICommandProvider
         var s3 = Godot.Input.IsActionJustPressed("skill_3");
         var s4 = Godot.Input.IsActionJustPressed("skill_4");
 
-        // 鼠标按钮：这里只采集“按下状态”，具体的点击落点/目标解析后续在胶水层实现。
-        var primary = Godot.Input.IsMouseButtonPressed(MouseButton.Left);
+        // 主要技能仍复用现有 attack_primary 动作，避免破坏当前左键点击/普攻共用的行为约定。
+        var primary = Godot.Input.IsActionJustPressed("attack_primary");
         var secondary = Godot.Input.IsMouseButtonPressed(MouseButton.Right);
 
         return new PlayerCommand(
