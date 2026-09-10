@@ -71,6 +71,15 @@ public partial class WorldRoot : Node2D
 
     private void OnEnemyDied(Vector2 pos)
     {
+        // 该信号可能来自物理回调（例如 Area2D.BodyEntered）期间。
+        // 在 flushing queries 阶段直接 AddChild/改监测状态会触发引擎报错：
+        // "Can't change this state while flushing queries."
+        // 因此这里统一延后到空闲帧再生成掉落。
+        CallDeferred(nameof(SpawnLootDeferred), pos);
+    }
+
+    private void SpawnLootDeferred(Vector2 pos)
+    {
         if (!Features.EnableLoot || LootPickupScene == null || _lootContainer == null)
         {
             return;
