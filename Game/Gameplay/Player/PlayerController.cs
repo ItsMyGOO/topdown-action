@@ -111,6 +111,11 @@ public partial class PlayerController : CharacterBody2D
                 "GameSession autoload not found. Please ensure project.godot [autoload] is configured."
             );
 
+        if (Features.EnableSkills)
+        {
+            _context.BindSkillResources(_session.Mana, _session.Cooldowns);
+        }
+
         Config ??= new PlayerConfig();
         AttackConfig ??= new PlayerAttackConfig();
         AttackHitbox ??= GetNodeOrNull<PlayerAttackHitbox>("AttackHitbox");

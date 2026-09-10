@@ -1,6 +1,8 @@
 using Godot;
 using GodotGameTemplate.Gameplay.Items;
+using GodotGameTemplate.Gameplay.Progression;
 using GodotGameTemplate.Gameplay.Save;
+using GodotGameTemplate.Gameplay.Skills;
 
 namespace GodotGameTemplate.Gameplay.Session;
 
@@ -13,6 +15,10 @@ public partial class GameSession : Node
     public InventoryModel Inventory { get; } = new();
 
     public EquipmentModel Equipment { get; } = new();
+
+    public ManaModel Mana { get; } = new();
+
+    public CooldownModel Cooldowns { get; } = new();
 
     public ISaveService SaveService { get; set; } = new SaveService();
 

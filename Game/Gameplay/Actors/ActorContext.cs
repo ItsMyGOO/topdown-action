@@ -20,12 +20,12 @@ public sealed class ActorContext
     /// <summary>
     /// 法力模型（纯逻辑），用于技能消耗。
     /// </summary>
-    public ManaModel Mana { get; } = new();
+    public ManaModel Mana { get; private set; } = new();
 
     /// <summary>
     /// 技能冷却模型（纯逻辑）。
     /// </summary>
-    public CooldownModel Cooldowns { get; } = new();
+    public CooldownModel Cooldowns { get; private set; } = new();
 
     public bool CanMove { get; set; } = true;
 
@@ -50,4 +50,13 @@ public sealed class ActorContext
     public bool EvadeFinishedThisFrame { get; set; }
 
     public bool HasMoveInput => CanMove && Intent.HasMoveInput;
+
+    /// <summary>
+    /// 绑定技能资源模型（用于跨场景共享，例如来自 <see cref="Gameplay.Session.GameSession"/>）。
+    /// </summary>
+    public void BindSkillResources(ManaModel mana, CooldownModel cooldowns)
+    {
+        Mana = mana;
+        Cooldowns = cooldowns;
+    }
 }
