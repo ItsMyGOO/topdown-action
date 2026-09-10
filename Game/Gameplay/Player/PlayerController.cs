@@ -14,6 +14,8 @@ namespace GodotGameTemplate.Gameplay.Player;
 
 public partial class PlayerController : CharacterBody2D
 {
+    private const float EvadeStaminaCost = 25f;
+
     [Export]
     public PlayerConfig? Config { get; set; }
 
@@ -33,6 +35,7 @@ public partial class PlayerController : CharacterBody2D
     private readonly IIntentProvider _input = new PlayerInputAdapter();
     private readonly PlayerIdleState _idleState = new();
     private readonly PlayerMoveState _moveState = new();
+    private readonly PlayerEvadeState _evadeState = new();
     private readonly TargetingService _targeting = new();
     private readonly CombatOrchestrator _combat = new();
     private readonly ClickToMoveModel _clickToMoveModel = new();
@@ -80,6 +83,7 @@ public partial class PlayerController : CharacterBody2D
     public override void _PhysicsProcess(double delta)
     {
         _context.AttackFinishedThisFrame = false;
+        _context.EvadeFinishedThisFrame = false;
 
         Config ??= new PlayerConfig();
         AttackConfig ??= new PlayerAttackConfig();
@@ -98,7 +102,10 @@ public partial class PlayerController : CharacterBody2D
         }
 
         _combat.AttackRange = AttackConfig.AttackRange;
-        ApplyCombatOrchestration();
+        if (!_context.IsEvading)
+        {
+            ApplyCombatOrchestration();
+        }
 
         ApplyClickToMoveIntentOverride();
 
@@ -107,7 +114,22 @@ public partial class PlayerController : CharacterBody2D
             AttackHitbox.AttackId = AttackConfig!.AttackId;
         }
 
-        if (!_context.IsAttacking && _context.CanAttack && _context.Intent.AttackPressed)
+        _context.Stamina.Tick((float)delta);
+        var evadePressed = Godot.Input.IsActionJustPressed("evade");
+        if (evadePressed && !_context.IsAttacking && !_context.IsEvading)
+        {
+            if (_context.Stamina.TryConsume(EvadeStaminaCost))
+            {
+                _stateMachine.ChangeState(_evadeState);
+            }
+        }
+
+        if (
+            !_context.IsAttacking
+            && !_context.IsEvading
+            && _context.CanAttack
+            && _context.Intent.AttackPressed
+        )
         {
             _stateMachine.ChangeState(_attackState);
         }
@@ -130,11 +152,15 @@ public partial class PlayerController : CharacterBody2D
 
         _stateMachine.PhysicsUpdate(delta);
 
-        if (_context.AttackFinishedThisFrame)
+        if (_context.EvadeFinishedThisFrame)
         {
             _stateMachine.ChangeState(_context.Intent.HasMoveInput ? _moveState : _idleState);
         }
-        else if (!_context.IsAttacking)
+        else if (_context.AttackFinishedThisFrame)
+        {
+            _stateMachine.ChangeState(_context.Intent.HasMoveInput ? _moveState : _idleState);
+        }
+        else if (!_context.IsAttacking && !_context.IsEvading)
         {
             _stateMachine.ChangeState(_context.HasMoveInput ? _moveState : _idleState);
         }

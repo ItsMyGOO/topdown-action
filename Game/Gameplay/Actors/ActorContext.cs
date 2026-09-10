@@ -1,4 +1,5 @@
 using Godot;
+using GodotGameTemplate.Gameplay.Progression;
 
 namespace GodotGameTemplate.Gameplay.Actors;
 
@@ -10,15 +11,24 @@ public sealed class ActorContext
 
     public Vector2 Facing { get; set; } = Vector2.Down;
 
+    /// <summary>
+    /// 体力模型（纯逻辑），用于翻滚/技能等消耗。
+    /// </summary>
+    public StaminaModel Stamina { get; } = new();
+
     public bool CanMove { get; set; } = true;
 
     public bool CanAttack { get; set; } = true;
 
     public bool IsAttacking { get; set; }
 
+    public bool IsEvading { get; set; }
+
     public Vector2 AttackFacing { get; set; } = Vector2.Down;
 
     public bool AttackFinishedThisFrame { get; set; }
+
+    public bool EvadeFinishedThisFrame { get; set; }
 
     public bool HasMoveInput => CanMove && Intent.HasMoveInput;
 }
