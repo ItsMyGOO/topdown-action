@@ -5,6 +5,7 @@ using GodotGameTemplate.Game.Scenes.Items;
 using GodotGameTemplate.Gameplay.Enemies;
 using GodotGameTemplate.Gameplay.Items;
 using GodotGameTemplate.Gameplay.Player;
+using GodotGameTemplate.Gameplay.Session;
 
 namespace GodotGameTemplate.Game.Scenes.World;
 
@@ -24,12 +25,14 @@ public partial class WorldRoot : Node2D
     private readonly LootDropper _lootDropper = new();
     private Area2D? _portalToTown;
     private PlayerController? _player;
+    private GameSession? _session;
 
     public override void _Ready()
     {
         _lootContainer = GetNodeOrNull("YSort") ?? this;
         LootPickupScene ??= GD.Load<PackedScene>("res://Game/Scenes/Items/LootPickup.tscn");
         _portalToTown = GetNodeOrNull<Area2D>("YSort/PortalToTown");
+        _session = GetNodeOrNull<GameSession>("/root/GameSession");
 
         foreach (var enemy in FindDescendantsOfType<BasicEnemyController>(_lootContainer))
         {
@@ -59,6 +62,7 @@ public partial class WorldRoot : Node2D
         {
             if (body == _player)
             {
+                _session?.Save();
                 GetTree().ChangeSceneToFile(TownScenePath);
                 return;
             }

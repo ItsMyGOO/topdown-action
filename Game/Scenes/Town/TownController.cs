@@ -2,6 +2,7 @@ using System.Linq;
 using Godot;
 using GodotGameTemplate.Gameplay.Items;
 using GodotGameTemplate.Gameplay.Player;
+using GodotGameTemplate.Gameplay.Session;
 
 namespace GodotGameTemplate.Game.Scenes.Town;
 
@@ -17,12 +18,14 @@ public partial class TownController : Node2D
     private PlayerController? _player;
     private Area2D? _vendorArea;
     private Area2D? _portalToWorld;
+    private GameSession? _session;
 
     public override void _Ready()
     {
         _player = GetNodeOrNull<PlayerController>("YSort/Player");
         _vendorArea = GetNodeOrNull<Area2D>("YSort/Vendor");
         _portalToWorld = GetNodeOrNull<Area2D>("YSort/PortalToWorld");
+        _session = GetNodeOrNull<GameSession>("/root/GameSession");
     }
 
     public override void _PhysicsProcess(double delta)
@@ -39,6 +42,7 @@ public partial class TownController : Node2D
 
         if (_portalToWorld != null && IsPlayerInsideArea(_player, _portalToWorld))
         {
+            _session?.Save();
             GetTree().ChangeSceneToFile(WorldScenePath);
             return;
         }

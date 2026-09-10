@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace GodotGameTemplate.Gameplay.Items;
 
@@ -39,5 +41,32 @@ public sealed class InventoryModel
     public bool Remove(ItemInstance item)
     {
         return _items.Remove(item);
+    }
+
+    /// <summary>
+    /// 清空背包。
+    /// </summary>
+    public void Clear()
+    {
+        _items.Clear();
+    }
+
+    /// <summary>
+    /// 用一整包物品替换当前背包内容。
+    /// </summary>
+    public void ReplaceItems(IEnumerable<ItemInstance> items)
+    {
+        ArgumentNullException.ThrowIfNull(items);
+
+        var nextItems = items.ToList();
+        if (nextItems.Count > Capacity)
+        {
+            throw new InvalidOperationException(
+                $"Inventory capacity is {Capacity}, but received {nextItems.Count} items."
+            );
+        }
+
+        _items.Clear();
+        _items.AddRange(nextItems);
     }
 }
