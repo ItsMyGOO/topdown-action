@@ -12,6 +12,9 @@ namespace GodotGameTemplate.Gameplay.Input;
 /// </summary>
 public sealed class MouseKeyboardInputAdapter : ICommandProvider
 {
+    private bool _wasConfirmDown;
+    private bool _wasCancelDown;
+
     /// <summary>
     /// 读取当前帧的输入状态并生成命令快照。
     /// </summary>
@@ -31,14 +34,24 @@ public sealed class MouseKeyboardInputAdapter : ICommandProvider
 
         // 主要技能仍复用现有 attack_primary 动作，避免破坏当前左键点击/普攻共用的行为约定。
         var primary = Godot.Input.IsActionJustPressed("attack_primary");
-        var secondary = Godot.Input.IsMouseButtonPressed(MouseButton.Right);
+        var rightDown = Godot.Input.IsMouseButtonPressed(MouseButton.Right);
+        var secondary = rightDown && !_wasCancelDown;
+        var leftDown = Godot.Input.IsMouseButtonPressed(MouseButton.Left);
+        var confirm = leftDown && !_wasConfirmDown;
+        var cancel = secondary;
+
+        _wasConfirmDown = leftDown;
+        _wasCancelDown = rightDown;
 
         return new PlayerCommand(
             ClickMoveDestination: null,
             ClickTargetInstanceId: null,
+            AimVector: Vector2.Zero,
             EvadePressed: evade,
             InteractPressed: interact,
             ToggleInventoryPressed: toggleInventory,
+            ConfirmPressed: confirm,
+            CancelPressed: cancel,
             PrimaryPressed: primary,
             SecondaryPressed: secondary,
             Skill1Pressed: s1,

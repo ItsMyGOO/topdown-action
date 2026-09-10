@@ -12,9 +12,12 @@ public sealed class PlayerCommandTests
         var cmd = new PlayerCommand(
             ClickMoveDestination: null,
             ClickTargetInstanceId: null,
+            AimVector: Vector2.Zero,
             EvadePressed: false,
             InteractPressed: false,
             ToggleInventoryPressed: false,
+            ConfirmPressed: false,
+            CancelPressed: false,
             PrimaryPressed: false,
             SecondaryPressed: false,
             Skill1Pressed: false,

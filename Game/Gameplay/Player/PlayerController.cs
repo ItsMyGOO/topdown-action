@@ -367,6 +367,9 @@ public partial class PlayerController : CharacterBody2D
             ClickTargetInstanceId: mouseKeyboard.ClickTargetInstanceId
                 ?? gamepad.ClickTargetInstanceId
                 ?? touch.ClickTargetInstanceId,
+            AimVector: gamepad.AimVector.LengthSquared() > 0f ? gamepad.AimVector
+                : touch.AimVector.LengthSquared() > 0f ? touch.AimVector
+                : Vector2.Zero,
             EvadePressed: mouseKeyboard.EvadePressed || gamepad.EvadePressed || touch.EvadePressed,
             InteractPressed: mouseKeyboard.InteractPressed
                 || gamepad.InteractPressed
@@ -374,6 +377,12 @@ public partial class PlayerController : CharacterBody2D
             ToggleInventoryPressed: mouseKeyboard.ToggleInventoryPressed
                 || gamepad.ToggleInventoryPressed
                 || touch.ToggleInventoryPressed,
+            ConfirmPressed: mouseKeyboard.ConfirmPressed
+                || gamepad.ConfirmPressed
+                || touch.ConfirmPressed,
+            CancelPressed: mouseKeyboard.CancelPressed
+                || gamepad.CancelPressed
+                || touch.CancelPressed,
             PrimaryPressed: mouseKeyboard.PrimaryPressed
                 || gamepad.PrimaryPressed
                 || touch.PrimaryPressed,

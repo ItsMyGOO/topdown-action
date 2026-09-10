@@ -45,17 +45,21 @@ public sealed class GamepadInputAdapter : ICommandProvider
 
     public Vector2 MoveVector { get; private set; }
 
+    public Vector2 AimVector { get; private set; }
+
     public PlayerCommand GetCommand()
     {
         var device = _deviceProvider();
         if (!device.HasValue)
         {
             MoveVector = Vector2.Zero;
+            AimVector = Vector2.Zero;
             ResetButtonState();
             return CreateEmptyCommand();
         }
 
         MoveVector = ReadMoveVector(device.Value);
+        AimVector = ReadAimVector(device.Value);
 
         var currentButtons = new Dictionary<JoyButton, bool>
         {
@@ -70,9 +74,12 @@ public sealed class GamepadInputAdapter : ICommandProvider
         var command = new PlayerCommand(
             ClickMoveDestination: null,
             ClickTargetInstanceId: null,
+            AimVector: AimVector,
             EvadePressed: JustPressed(JoyButton.B, currentButtons),
             InteractPressed: false,
             ToggleInventoryPressed: false,
+            ConfirmPressed: JustPressed(JoyButton.A, currentButtons),
+            CancelPressed: JustPressed(JoyButton.B, currentButtons),
             PrimaryPressed: JustPressed(JoyButton.A, currentButtons),
             SecondaryPressed: JustPressed(JoyButton.X, currentButtons),
             Skill1Pressed: JustPressed(JoyButton.Y, currentButtons),
@@ -106,6 +113,16 @@ public sealed class GamepadInputAdapter : ICommandProvider
         return move.LengthSquared() > 1f ? move.Normalized() : move;
     }
 
+    private Vector2 ReadAimVector(int device)
+    {
+        var aim = new Vector2(
+            ApplyDeadzone(_axisReader(device, JoyAxis.RightX)),
+            ApplyDeadzone(_axisReader(device, JoyAxis.RightY))
+        );
+
+        return aim.LengthSquared() > 1f ? aim.Normalized() : aim;
+    }
+
     private float ApplyDeadzone(float value)
     {
         return Mathf.Abs(value) < _deadzone ? 0f : value;
@@ -121,9 +138,12 @@ public sealed class GamepadInputAdapter : ICommandProvider
         return new PlayerCommand(
             ClickMoveDestination: null,
             ClickTargetInstanceId: null,
+            AimVector: Vector2.Zero,
             EvadePressed: false,
             InteractPressed: false,
             ToggleInventoryPressed: false,
+            ConfirmPressed: false,
+            CancelPressed: false,
             PrimaryPressed: false,
             SecondaryPressed: false,
             Skill1Pressed: false,

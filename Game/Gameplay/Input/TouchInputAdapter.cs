@@ -18,8 +18,14 @@ public sealed class TouchInputAdapter : ICommandProvider
     private bool _previousInteractPressed;
     private bool _toggleInventoryPressed;
     private bool _previousToggleInventoryPressed;
+    private bool _confirmPressed;
+    private bool _previousConfirmPressed;
+    private bool _cancelPressed;
+    private bool _previousCancelPressed;
 
     public Vector2 MoveVector { get; private set; }
+
+    public Vector2 AimVector { get; private set; }
 
     public Vector2? ClickMoveDestination { get; private set; }
 
@@ -28,6 +34,11 @@ public sealed class TouchInputAdapter : ICommandProvider
     public void SetVirtualMove(Vector2 move)
     {
         MoveVector = move;
+    }
+
+    public void SetVirtualAim(Vector2 aim)
+    {
+        AimVector = aim;
     }
 
     public void SetSkillPressed(SkillSlot slot, bool pressed)
@@ -50,6 +61,16 @@ public sealed class TouchInputAdapter : ICommandProvider
         _toggleInventoryPressed = pressed;
     }
 
+    public void SetConfirmPressed(bool pressed)
+    {
+        _confirmPressed = pressed;
+    }
+
+    public void SetCancelPressed(bool pressed)
+    {
+        _cancelPressed = pressed;
+    }
+
     public void SetClickMoveDestination(Vector2? destination)
     {
         ClickMoveDestination = destination;
@@ -65,12 +86,15 @@ public sealed class TouchInputAdapter : ICommandProvider
         var command = new PlayerCommand(
             ClickMoveDestination: ClickMoveDestination,
             ClickTargetInstanceId: ClickTargetInstanceId,
+            AimVector: AimVector,
             EvadePressed: JustPressed(_evadePressed, ref _previousEvadePressed),
             InteractPressed: JustPressed(_interactPressed, ref _previousInteractPressed),
             ToggleInventoryPressed: JustPressed(
                 _toggleInventoryPressed,
                 ref _previousToggleInventoryPressed
             ),
+            ConfirmPressed: JustPressed(_confirmPressed, ref _previousConfirmPressed),
+            CancelPressed: JustPressed(_cancelPressed, ref _previousCancelPressed),
             PrimaryPressed: IsSkillJustPressed(SkillSlot.Primary),
             SecondaryPressed: IsSkillJustPressed(SkillSlot.Secondary),
             Skill1Pressed: IsSkillJustPressed(SkillSlot.Skill1),

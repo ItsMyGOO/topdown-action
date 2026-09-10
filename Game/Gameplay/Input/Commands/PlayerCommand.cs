@@ -8,9 +8,12 @@ namespace GodotGameTemplate.Gameplay.Input.Commands;
 public readonly record struct PlayerCommand(
     Vector2? ClickMoveDestination,
     ulong? ClickTargetInstanceId,
+    Vector2 AimVector,
     bool EvadePressed,
     bool InteractPressed,
     bool ToggleInventoryPressed,
+    bool ConfirmPressed,
+    bool CancelPressed,
     bool PrimaryPressed,
     bool SecondaryPressed,
     bool Skill1Pressed,

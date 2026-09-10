@@ -146,9 +146,12 @@ public sealed class MultiPlatformInputTests
         var mouse = new PlayerCommand(
             ClickMoveDestination: new Vector2(10f, 20f),
             ClickTargetInstanceId: 99ul,
+            AimVector: Vector2.Zero,
             EvadePressed: false,
             InteractPressed: false,
             ToggleInventoryPressed: false,
+            ConfirmPressed: false,
+            CancelPressed: false,
             PrimaryPressed: false,
             SecondaryPressed: false,
             Skill1Pressed: false,
@@ -159,9 +162,12 @@ public sealed class MultiPlatformInputTests
         var gamepad = new PlayerCommand(
             ClickMoveDestination: null,
             ClickTargetInstanceId: null,
+            AimVector: new Vector2(0.3f, 0.4f),
             EvadePressed: true,
             InteractPressed: false,
             ToggleInventoryPressed: false,
+            ConfirmPressed: false,
+            CancelPressed: false,
             PrimaryPressed: true,
             SecondaryPressed: false,
             Skill1Pressed: false,
@@ -172,9 +178,12 @@ public sealed class MultiPlatformInputTests
         var touch = new PlayerCommand(
             ClickMoveDestination: new Vector2(-5f, -8f),
             ClickTargetInstanceId: 7ul,
+            AimVector: new Vector2(0.9f, 0.1f),
             EvadePressed: false,
             InteractPressed: true,
             ToggleInventoryPressed: false,
+            ConfirmPressed: false,
+            CancelPressed: false,
             PrimaryPressed: false,
             SecondaryPressed: true,
             Skill1Pressed: false,
@@ -194,6 +203,7 @@ public sealed class MultiPlatformInputTests
         Assert.True(merged.SecondaryPressed);
         Assert.True(merged.Skill2Pressed);
         Assert.True(merged.Skill3Pressed);
+        Assert.Equal(new Vector2(0.3f, 0.4f), merged.AimVector);
     }
 
     [Fact]
@@ -212,9 +222,12 @@ public sealed class MultiPlatformInputTests
         var command = new PlayerCommand(
             ClickMoveDestination: null,
             ClickTargetInstanceId: null,
+            AimVector: Vector2.Zero,
             EvadePressed: false,
             InteractPressed: false,
             ToggleInventoryPressed: false,
+            ConfirmPressed: false,
+            CancelPressed: false,
             PrimaryPressed: true,
             SecondaryPressed: false,
             Skill1Pressed: false,
