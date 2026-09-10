@@ -1,12 +1,14 @@
 using System;
 using System.Linq;
 using Godot;
+using GodotGameTemplate.Config;
 using GodotGameTemplate.Config.Player;
 using GodotGameTemplate.Gameplay.Actors;
 using GodotGameTemplate.Gameplay.Combat;
 using GodotGameTemplate.Gameplay.Combat.Targeting;
 using GodotGameTemplate.Gameplay.Common.StateMachine;
 using GodotGameTemplate.Gameplay.Input;
+using GodotGameTemplate.Gameplay.Items;
 using GodotGameTemplate.Gameplay.Navigation;
 using GodotGameTemplate.Gameplay.Player.States;
 
@@ -39,6 +41,11 @@ public partial class PlayerController : CharacterBody2D
     private readonly TargetingService _targeting = new();
     private readonly CombatOrchestrator _combat = new();
     private readonly ClickToMoveModel _clickToMoveModel = new();
+    private readonly Inventory3 _inventory = new();
+
+    public GameFeatures Features { get; set; } = new();
+
+    public Inventory3 Inventory => _inventory;
 
     private bool _wasLeftMouseDown;
 
@@ -194,6 +201,20 @@ public partial class PlayerController : CharacterBody2D
         };
 
         var results = space.IntersectPoint(query, maxResults: 16);
+
+        if (Features.EnableLoot && Features.EnableInventory)
+        {
+            var loot = results
+                .Select(r => r["collider"].AsGodotObject())
+                .OfType<Node>()
+                .Select(TryResolveLootPickupNode)
+                .FirstOrDefault(n => n != null);
+
+            if (loot != null)
+            {
+                return HandleLootClick(loot);
+            }
+        }
         var target = results
             .Select(r => r["collider"].AsGodotObject())
             .OfType<Node>()
@@ -210,6 +231,17 @@ public partial class PlayerController : CharacterBody2D
             _targeting.ClearTarget();
             _clickToMoveModel.SetDestination(mousePos);
             ClickToMove?.SetDestination(mousePos);
+        }
+
+        return true;
+    }
+
+    private bool HandleLootClick(LootPickup loot)
+    {
+        var ok = _inventory.TryAdd(loot.ToItemStack());
+        if (ok)
+        {
+            loot.QueueFree();
         }
 
         return true;
@@ -328,6 +360,22 @@ public partial class PlayerController : CharacterBody2D
             if (current.IsInGroup("targetable"))
             {
                 return current;
+            }
+
+            current = current.GetParent();
+        }
+
+        return null;
+    }
+
+    private static LootPickup? TryResolveLootPickupNode(Node startNode)
+    {
+        Node? current = startNode;
+        while (current != null)
+        {
+            if (current is LootPickup lp)
+            {
+                return lp;
             }
 
             current = current.GetParent();

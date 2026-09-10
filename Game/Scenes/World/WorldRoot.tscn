@@ -1,9 +1,11 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene load_steps=4 format=3]
 
 [ext_resource type="PackedScene" path="res://Game/Scenes/Player/Player.tscn" id="1_4nq6a"]
 [ext_resource type="PackedScene" path="res://Game/Scenes/Enemies/BasicEnemy.tscn" id="2_f6v4d"]
+[ext_resource type="Script" path="res://Game/Scenes/World/WorldRoot.cs" id="3_worldroot"]
 
 [node name="WorldRoot" type="Node2D"]
+script = ExtResource("3_worldroot")
 
 [node name="YSort" type="YSort" parent="."]
 

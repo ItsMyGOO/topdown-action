@@ -10,6 +10,9 @@ namespace GodotGameTemplate.Gameplay.Enemies;
 /// </summary>
 public partial class BasicEnemyController : CharacterBody2D, IHitReceiver, ITargetable
 {
+    [Signal]
+    public delegate void DiedEventHandler(Vector2 pos);
+
     [Export]
     public int MaxHp { get; set; } = 3;
 
@@ -78,6 +81,7 @@ public partial class BasicEnemyController : CharacterBody2D, IHitReceiver, ITarg
             return;
         }
 
+        EmitSignal(SignalName.Died, GlobalPosition);
         RemoveFromGroup("targetable");
         QueueFree();
     }
