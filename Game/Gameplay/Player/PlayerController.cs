@@ -3,6 +3,7 @@ using System.Linq;
 using Godot;
 using GodotGameTemplate.Config;
 using GodotGameTemplate.Config.Player;
+using GodotGameTemplate.Game.Scenes.Items;
 using GodotGameTemplate.Gameplay.Actors;
 using GodotGameTemplate.Gameplay.Combat;
 using GodotGameTemplate.Gameplay.Combat.Targeting;
@@ -41,11 +42,14 @@ public partial class PlayerController : CharacterBody2D
     private readonly TargetingService _targeting = new();
     private readonly CombatOrchestrator _combat = new();
     private readonly ClickToMoveModel _clickToMoveModel = new();
-    private readonly Inventory3 _inventory = new();
+    private readonly InventoryModel _inventory = new();
+    private readonly EquipmentModel _equipment = new();
 
     public GameFeatures Features { get; set; } = new();
 
-    public Inventory3 Inventory => _inventory;
+    public InventoryModel Inventory => _inventory;
+
+    public EquipmentModel Equipment => _equipment;
 
     private bool _wasLeftMouseDown;
 
@@ -238,10 +242,10 @@ public partial class PlayerController : CharacterBody2D
 
     private bool HandleLootClick(LootPickup loot)
     {
-        var ok = _inventory.TryAdd(loot.ToItemStack());
+        var ok = _inventory.TryAdd(loot.Item);
         if (ok)
         {
-            loot.QueueFree();
+            loot.Pick();
         }
 
         return true;

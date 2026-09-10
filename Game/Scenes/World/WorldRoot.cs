@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Godot;
 using GodotGameTemplate.Config;
+using GodotGameTemplate.Game.Scenes.Items;
 using GodotGameTemplate.Gameplay.Enemies;
 using GodotGameTemplate.Gameplay.Items;
 
@@ -17,6 +18,7 @@ public partial class WorldRoot : Node2D
     public GameFeatures Features { get; set; } = new();
 
     private Node? _lootContainer;
+    private readonly LootDropper _lootDropper = new();
 
     public override void _Ready()
     {
@@ -38,8 +40,7 @@ public partial class WorldRoot : Node2D
 
         var loot = LootPickupScene.Instantiate<LootPickup>();
         loot.GlobalPosition = pos;
-        loot.ItemId = "gold";
-        loot.Quantity = 1;
+        loot.Item = _lootDropper.RollBasicDrop();
         _lootContainer.AddChild(loot);
     }
 
