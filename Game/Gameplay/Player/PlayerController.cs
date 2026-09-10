@@ -124,6 +124,8 @@ public partial class PlayerController : CharacterBody2D
     {
         _context.AttackFinishedThisFrame = false;
         _context.EvadeFinishedThisFrame = false;
+        _context.CastFinishedThisFrame = false;
+        _context.TargetingFinishedThisFrame = false;
 
         Config ??= new PlayerConfig();
         AttackConfig ??= new PlayerAttackConfig();
@@ -164,6 +166,11 @@ public partial class PlayerController : CharacterBody2D
         }
 
         _context.Stamina.Tick((float)delta);
+        if (Features.EnableSkills)
+        {
+            _context.Mana.Tick((float)delta);
+            _context.Cooldowns.Tick((float)delta);
+        }
         var evadePressed = mergedCommand.EvadePressed;
         if (evadePressed && !_context.IsAttacking && !_context.IsEvading)
         {

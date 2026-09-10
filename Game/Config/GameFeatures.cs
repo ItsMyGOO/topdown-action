@@ -10,6 +10,8 @@ public sealed class GameFeatures
 
     public bool EnableInventory { get; set; } = true;
 
+    public bool EnableSkills { get; set; } = true;
+
     public bool EnableLeveling { get; set; } = true;
 
     public bool EnableTown { get; set; } = true;

@@ -1,5 +1,6 @@
 using Godot;
 using GodotGameTemplate.Gameplay.Progression;
+using GodotGameTemplate.Gameplay.Skills;
 
 namespace GodotGameTemplate.Gameplay.Actors;
 
@@ -16,6 +17,16 @@ public sealed class ActorContext
     /// </summary>
     public StaminaModel Stamina { get; } = new();
 
+    /// <summary>
+    /// 法力模型（纯逻辑），用于技能消耗。
+    /// </summary>
+    public ManaModel Mana { get; } = new();
+
+    /// <summary>
+    /// 技能冷却模型（纯逻辑）。
+    /// </summary>
+    public CooldownModel Cooldowns { get; } = new();
+
     public bool CanMove { get; set; } = true;
 
     public bool CanAttack { get; set; } = true;
@@ -23,6 +34,14 @@ public sealed class ActorContext
     public bool IsAttacking { get; set; }
 
     public bool IsEvading { get; set; }
+
+    public bool IsCasting { get; set; }
+
+    public bool CastFinishedThisFrame { get; set; }
+
+    public bool IsTargeting { get; set; }
+
+    public bool TargetingFinishedThisFrame { get; set; }
 
     public Vector2 AttackFacing { get; set; } = Vector2.Down;
 
