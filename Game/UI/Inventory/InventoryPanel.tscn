@@ -1,0 +1,27 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://Game/UI/Inventory/InventoryPanel.cs" id="1_inventory_panel_cs"]
+
+[node name="InventoryPanel" type="PanelContainer"]
+custom_minimum_size = Vector2(280, 220)
+script = ExtResource("1_inventory_panel_cs")
+
+[node name="Margin" type="MarginContainer" parent="."]
+offset_right = 280.0
+offset_bottom = 220.0
+
+[node name="VBox" type="VBoxContainer" parent="Margin"]
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="Title" type="Label" parent="Margin/VBox"]
+text = "背包"
+
+[node name="Scroll" type="ScrollContainer" parent="Margin/VBox"]
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="ItemsList" type="VBoxContainer" parent="Margin/VBox/Scroll"]
+size_flags_horizontal = 3
+size_flags_vertical = 3
+

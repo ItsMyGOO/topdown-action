@@ -1,8 +1,9 @@
-[gd_scene load_steps=4 format=3]
+[gd_scene load_steps=5 format=3]
 
 [ext_resource type="PackedScene" path="res://Game/Scenes/Player/Player.tscn" id="1_4nq6a"]
 [ext_resource type="PackedScene" path="res://Game/Scenes/Enemies/BasicEnemy.tscn" id="2_f6v4d"]
 [ext_resource type="Script" path="res://Game/Scenes/World/WorldRoot.cs" id="3_worldroot"]
+[ext_resource type="PackedScene" path="res://Game/UI/Hud/Hud.tscn" id="4_hud"]
 
 [node name="WorldRoot" type="Node2D"]
 script = ExtResource("3_worldroot")
@@ -14,3 +15,5 @@ position = Vector2(160, 90)
 
 [node name="Enemy" parent="YSort" instance=ExtResource("2_f6v4d")]
 position = Vector2(240, 100)
+
+[node name="Hud" parent="." instance=ExtResource("4_hud")]

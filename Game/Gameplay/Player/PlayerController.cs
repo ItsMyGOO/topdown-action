@@ -51,6 +51,11 @@ public partial class PlayerController : CharacterBody2D
 
     public EquipmentModel Equipment => _equipment;
 
+    /// <summary>
+    /// 角色运行时上下文（用于 HUD 读取体力等信息）。
+    /// </summary>
+    public ActorContext ActorContext => _context;
+
     private bool _wasLeftMouseDown;
 
     private PlayerAttackState _attackState = default!;
@@ -58,6 +63,9 @@ public partial class PlayerController : CharacterBody2D
 
     public override void _Ready()
     {
+        // 供 UI 快速定位玩家。
+        AddToGroup("player");
+
         Config ??= new PlayerConfig();
         AttackConfig ??= new PlayerAttackConfig();
         AttackHitbox ??= GetNodeOrNull<PlayerAttackHitbox>("AttackHitbox");

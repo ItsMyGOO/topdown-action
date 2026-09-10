@@ -1,0 +1,29 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://Game/UI/Hud/Hud.cs" id="1_hud_cs"]
+[ext_resource type="PackedScene" path="res://Game/UI/Inventory/InventoryPanel.tscn" id="2_inventory_panel"]
+
+[node name="Hud" type="CanvasLayer"]
+script = ExtResource("1_hud_cs")
+
+[node name="Margin" type="MarginContainer" parent="."]
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 8.0
+offset_top = 8.0
+offset_right = -8.0
+offset_bottom = -8.0
+
+[node name="VBox" type="VBoxContainer" parent="Margin"]
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="StaminaLabel" type="Label" parent="Margin/VBox"]
+text = "体力: --/--"
+
+[node name="GoldLabel" type="Label" parent="Margin/VBox"]
+text = "金币: 0"
+
+[node name="InventoryPanel" parent="Margin/VBox" instance=ExtResource("2_inventory_panel")]
+visible = false
+
