@@ -21,9 +21,35 @@ size_flags_vertical = 3
 [node name="StaminaLabel" type="Label" parent="Margin/VBox"]
 text = "体力: --/--"
 
+[node name="ManaLabel" type="Label" parent="Margin/VBox"]
+text = "法力: --/--"
+
 [node name="GoldLabel" type="Label" parent="Margin/VBox"]
 text = "金币: 0"
 
+[node name="SkillBar" type="HBoxContainer" parent="Margin/VBox"]
+
+[node name="PrimaryLabel" type="Label" parent="Margin/VBox/SkillBar"]
+text = "P"
+
+[node name="SecondaryLabel" type="Label" parent="Margin/VBox/SkillBar"]
+text = "S"
+
+[node name="Skill1Label" type="Label" parent="Margin/VBox/SkillBar"]
+text = "1"
+
+[node name="Skill2Label" type="Label" parent="Margin/VBox/SkillBar"]
+text = "2"
+
+[node name="Skill3Label" type="Label" parent="Margin/VBox/SkillBar"]
+text = "3"
+
+[node name="Skill4Label" type="Label" parent="Margin/VBox/SkillBar"]
+text = "4"
+
+[node name="ToastLabel" type="Label" parent="Margin/VBox"]
+visible = false
+text = ""
+
 [node name="InventoryPanel" parent="Margin/VBox" instance=ExtResource("2_inventory_panel")]
 visible = false
-

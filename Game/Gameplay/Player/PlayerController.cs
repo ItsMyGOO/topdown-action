@@ -67,6 +67,12 @@ public partial class PlayerController : CharacterBody2D
 
     private PlayerCommand _currentCommand;
 
+    private string _skillToastMessage = string.Empty;
+    private double _skillToastRemainingSeconds;
+
+    public string SkillToastMessage =>
+        _skillToastRemainingSeconds > 0d ? _skillToastMessage : string.Empty;
+
     public GameFeatures Features { get; set; } = new();
 
     public InventoryModel Inventory => _session.Inventory;
@@ -165,6 +171,11 @@ public partial class PlayerController : CharacterBody2D
 
     public override void _PhysicsProcess(double delta)
     {
+        if (_skillToastRemainingSeconds > 0d)
+        {
+            _skillToastRemainingSeconds = Math.Max(0d, _skillToastRemainingSeconds - delta);
+        }
+
         _context.AttackFinishedThisFrame = false;
         _context.EvadeFinishedThisFrame = false;
         _context.CastFinishedThisFrame = false;
@@ -338,9 +349,24 @@ public partial class PlayerController : CharacterBody2D
 
                 StartInstantCast(decision.Slot);
                 break;
+            case SkillDecisionKind.Reject:
+                ShowSkillToast(decision.RejectReason);
+                break;
             default:
                 break;
         }
+    }
+
+    private void ShowSkillToast(SkillRejectReason reason)
+    {
+        _skillToastMessage = reason switch
+        {
+            SkillRejectReason.Cooldown => "技能冷却中",
+            SkillRejectReason.NotEnoughMana => "法力不足",
+            SkillRejectReason.Busy => "当前无法施放",
+            _ => "无法施放",
+        };
+        _skillToastRemainingSeconds = 1.0d;
     }
 
     private void StartInstantCast(SkillSlot slot)
