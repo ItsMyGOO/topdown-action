@@ -32,6 +32,7 @@ public sealed class MultiPlatformInputTests
             [JoyButton.B] = true,
             [JoyButton.Y] = true,
             [JoyButton.LeftShoulder] = true,
+            [JoyButton.RightStick] = true,
         };
 
         Func<int?> deviceProvider = () => 1;
@@ -69,6 +70,7 @@ public sealed class MultiPlatformInputTests
         Assert.True(first.Skill2Pressed);
         Assert.False(first.SecondaryPressed);
         Assert.False(first.Skill3Pressed);
+        Assert.True(first.Skill4Pressed);
 
         var second = Assert.IsType<PlayerCommand>(
             getCommand.Invoke(adapter, Array.Empty<object>())
@@ -77,6 +79,7 @@ public sealed class MultiPlatformInputTests
         Assert.False(second.EvadePressed);
         Assert.False(second.Skill1Pressed);
         Assert.False(second.Skill2Pressed);
+        Assert.False(second.Skill4Pressed);
     }
 
     [Fact]

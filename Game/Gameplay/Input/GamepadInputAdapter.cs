@@ -69,6 +69,8 @@ public sealed class GamepadInputAdapter : ICommandProvider
             [JoyButton.Y] = _buttonReader(device.Value, JoyButton.Y),
             [JoyButton.LeftShoulder] = _buttonReader(device.Value, JoyButton.LeftShoulder),
             [JoyButton.RightShoulder] = _buttonReader(device.Value, JoyButton.RightShoulder),
+            // 补齐第 6 槽：用右摇杆按下（R3）作为 Skill4。
+            [JoyButton.RightStick] = _buttonReader(device.Value, JoyButton.RightStick),
         };
 
         var command = new PlayerCommand(
@@ -85,7 +87,7 @@ public sealed class GamepadInputAdapter : ICommandProvider
             Skill1Pressed: JustPressed(JoyButton.Y, currentButtons),
             Skill2Pressed: JustPressed(JoyButton.LeftShoulder, currentButtons),
             Skill3Pressed: JustPressed(JoyButton.RightShoulder, currentButtons),
-            Skill4Pressed: false
+            Skill4Pressed: JustPressed(JoyButton.RightStick, currentButtons)
         );
 
         foreach (var pair in currentButtons)

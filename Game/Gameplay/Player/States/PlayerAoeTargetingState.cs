@@ -117,15 +117,30 @@ public sealed class PlayerAoeTargetingState : IState<ActorContext>
             _indicator.GlobalPosition = _point;
         }
 
-        if (_getCancelPressed())
-        {
-            WasConfirmed = false;
-            context.TargetingFinishedThisFrame = true;
-        }
+        // 兼容：不同平台 / 帧率下，Confirm/Cancel 事件可能在 _Process 或 _PhysicsProcess 采样到。
+        // 因此两者都在 Update/PhysicsUpdate 里做一次处理，保证不会漏按。
+        TryFinish(context);
     }
 
     public void PhysicsUpdate(ActorContext context, double delta)
     {
+        TryFinish(context);
+    }
+
+    private void TryFinish(ActorContext context)
+    {
+        if (context.TargetingFinishedThisFrame)
+        {
+            return;
+        }
+
+        if (_getCancelPressed())
+        {
+            WasConfirmed = false;
+            context.TargetingFinishedThisFrame = true;
+            return;
+        }
+
         if (_getConfirmPressed())
         {
             WasConfirmed = true;
