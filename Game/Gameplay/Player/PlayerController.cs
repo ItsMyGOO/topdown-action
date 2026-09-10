@@ -4,6 +4,7 @@ using Godot;
 using GodotGameTemplate.Config;
 using GodotGameTemplate.Config.Player;
 using GodotGameTemplate.Game.Scenes.Items;
+using GodotGameTemplate.Game.Scenes.Skills;
 using GodotGameTemplate.Gameplay.Actors;
 using GodotGameTemplate.Gameplay.Combat;
 using GodotGameTemplate.Gameplay.Combat.Targeting;
@@ -14,12 +15,18 @@ using GodotGameTemplate.Gameplay.Items;
 using GodotGameTemplate.Gameplay.Navigation;
 using GodotGameTemplate.Gameplay.Player.States;
 using GodotGameTemplate.Gameplay.Session;
+using GodotGameTemplate.Gameplay.Skills;
 
 namespace GodotGameTemplate.Gameplay.Player;
 
 public partial class PlayerController : CharacterBody2D
 {
     private const float EvadeStaminaCost = 25f;
+    private const string AoeIndicatorScenePath = "res://Game/Scenes/Skills/AoeIndicator.tscn";
+    private const string ProjectileEffectScenePath =
+        "res://Game/Scenes/Skills/ProjectileSkillEffect.tscn";
+    private const string AoeStrikeEffectScenePath =
+        "res://Game/Scenes/Skills/AoeStrikeSkillEffect.tscn";
 
     [Export]
     public PlayerConfig? Config { get; set; }
@@ -44,10 +51,21 @@ public partial class PlayerController : CharacterBody2D
     private readonly PlayerIdleState _idleState = new();
     private readonly PlayerMoveState _moveState = new();
     private readonly PlayerEvadeState _evadeState = new();
+    private readonly SkillOrchestrator _skillOrchestrator = new();
     private readonly TargetingService _targeting = new();
     private readonly CombatOrchestrator _combat = new();
     private readonly ClickToMoveModel _clickToMoveModel = new();
     private GameSession _session = default!;
+
+    private readonly PlayerSkillCastState _skillCastState;
+    private readonly PlayerAoeTargetingState _aoeTargetingState;
+
+    private PackedScene? _aoeIndicatorScene;
+    private PackedScene? _projectileEffectScene;
+    private PackedScene? _aoeStrikeEffectScene;
+    private AoeIndicator? _aoeIndicator;
+
+    private PlayerCommand _currentCommand;
 
     public GameFeatures Features { get; set; } = new();
 
@@ -112,7 +130,32 @@ public partial class PlayerController : CharacterBody2D
             ClickToMove.MaxSpeed = Config.MoveSpeed;
         }
 
+        // Skill scenes
+        _aoeIndicatorScene = GD.Load<PackedScene>(AoeIndicatorScenePath);
+        _projectileEffectScene = GD.Load<PackedScene>(ProjectileEffectScenePath);
+        _aoeStrikeEffectScene = GD.Load<PackedScene>(AoeStrikeEffectScenePath);
+
         View?.Sync(_context);
+    }
+
+    public PlayerController()
+    {
+        // 注意：这里的委托会捕获 this，因此必须在运行时访问（Enter/Update）时才会使用到场景树数据。
+        _skillCastState = new PlayerSkillCastState(
+            getSkill: slot => SkillDatabase.DefaultBySlot[slot],
+            spawnEffect: SpawnSkillEffect
+        );
+
+        _aoeTargetingState = new PlayerAoeTargetingState(
+            getMouseWorld: () => GetGlobalMousePosition(),
+            getAimVector: () => _currentCommand.AimVector,
+            getConfirmPressed: () => _currentCommand.ConfirmPressed,
+            getCancelPressed: () => _currentCommand.CancelPressed,
+            getPlayerPosition: () => GlobalPosition,
+            getMaxRange: () => SkillDatabase.DefaultBySlot[SkillSlot.Secondary].Range,
+            getRadius: () => SkillDatabase.DefaultBySlot[SkillSlot.Secondary].AoeRadius,
+            getOrCreateIndicator: GetOrCreateAoeIndicator
+        );
     }
 
     public override void _Process(double delta)
@@ -135,16 +178,17 @@ public partial class PlayerController : CharacterBody2D
             ClickToMove.MaxSpeed = Config.MoveSpeed;
         }
 
-        var consumedLeftClick = HandleLeftClick();
+        // 瞄准期间，左键用于确认释放，不再用于拾取/选中/点击移动。
+        var consumedLeftClick = !_context.IsTargeting && HandleLeftClick();
         var keyboardIntent = _keyboardInput.GetIntent();
-        var mergedCommand = MergeCommands(
+        _currentCommand = MergeCommands(
             _mouseKeyboardInput.GetCommand(),
             _gamepadInput.GetCommand(),
             _touchInput.GetCommand()
         );
 
         _context.Intent = ResolveManualIntent(
-            mergedCommand,
+            _currentCommand,
             keyboardIntent.Move,
             _gamepadInput.MoveVector,
             _touchInput.MoveVector,
@@ -153,7 +197,7 @@ public partial class PlayerController : CharacterBody2D
         );
 
         _combat.AttackRange = AttackConfig.AttackRange;
-        if (!_context.IsEvading)
+        if (!_context.IsEvading && !_context.IsCasting && !_context.IsTargeting)
         {
             ApplyCombatOrchestration();
         }
@@ -171,8 +215,14 @@ public partial class PlayerController : CharacterBody2D
             _context.Mana.Tick((float)delta);
             _context.Cooldowns.Tick((float)delta);
         }
-        var evadePressed = mergedCommand.EvadePressed;
-        if (evadePressed && !_context.IsAttacking && !_context.IsEvading)
+        var evadePressed = _currentCommand.EvadePressed;
+        if (
+            evadePressed
+            && !_context.IsAttacking
+            && !_context.IsEvading
+            && !_context.IsCasting
+            && !_context.IsTargeting
+        )
         {
             if (_context.Stamina.TryConsume(EvadeStaminaCost))
             {
@@ -180,9 +230,16 @@ public partial class PlayerController : CharacterBody2D
             }
         }
 
+        if (Features.EnableSkills)
+        {
+            ApplySkillInput();
+        }
+
         if (
             !_context.IsAttacking
             && !_context.IsEvading
+            && !_context.IsCasting
+            && !_context.IsTargeting
             && _context.CanAttack
             && _context.Intent.AttackPressed
         )
@@ -208,7 +265,22 @@ public partial class PlayerController : CharacterBody2D
 
         _stateMachine.PhysicsUpdate(delta);
 
-        if (_context.EvadeFinishedThisFrame)
+        if (_context.TargetingFinishedThisFrame)
+        {
+            if (_aoeTargetingState.WasConfirmed)
+            {
+                StartSecondaryCastFromTargetingPoint(_aoeTargetingState.SelectedPoint);
+            }
+            else
+            {
+                _stateMachine.ChangeState(_context.Intent.HasMoveInput ? _moveState : _idleState);
+            }
+        }
+        else if (_context.CastFinishedThisFrame)
+        {
+            _stateMachine.ChangeState(_context.Intent.HasMoveInput ? _moveState : _idleState);
+        }
+        else if (_context.EvadeFinishedThisFrame)
         {
             _stateMachine.ChangeState(_context.Intent.HasMoveInput ? _moveState : _idleState);
         }
@@ -216,7 +288,12 @@ public partial class PlayerController : CharacterBody2D
         {
             _stateMachine.ChangeState(_context.Intent.HasMoveInput ? _moveState : _idleState);
         }
-        else if (!_context.IsAttacking && !_context.IsEvading)
+        else if (
+            !_context.IsAttacking
+            && !_context.IsEvading
+            && !_context.IsCasting
+            && !_context.IsTargeting
+        )
         {
             _stateMachine.ChangeState(_context.HasMoveInput ? _moveState : _idleState);
         }
@@ -226,6 +303,163 @@ public partial class PlayerController : CharacterBody2D
 
         _context.Velocity = Velocity;
         View?.Sync(_context);
+    }
+
+    private void ApplySkillInput()
+    {
+        // 瞄准/施法/攻击/翻滚期间不再触发新的技能。
+        var isBusy =
+            _context.IsAttacking
+            || _context.IsEvading
+            || _context.IsCasting
+            || _context.IsTargeting;
+
+        var decision = _skillOrchestrator.Evaluate(
+            _currentCommand,
+            SkillDatabase.DefaultBySlot,
+            _context.Mana,
+            _context.Cooldowns,
+            isBusy
+        );
+
+        switch (decision.Kind)
+        {
+            case SkillDecisionKind.StartAoeTargeting:
+                // Secondary：进入选点模式
+                ClearClickToMoveDestination();
+                _stateMachine.ChangeState(_aoeTargetingState);
+                break;
+            case SkillDecisionKind.StartInstantCast:
+                // Primary 仍由原普攻系统处理，避免重复。
+                if (decision.Slot == SkillSlot.Primary)
+                {
+                    break;
+                }
+
+                StartInstantCast(decision.Slot);
+                break;
+            default:
+                break;
+        }
+    }
+
+    private void StartInstantCast(SkillSlot slot)
+    {
+        var def = SkillDatabase.DefaultBySlot[slot];
+        var direction = ResolveCastDirection();
+        Vector2? point = null;
+
+        if (def.EffectKind == SkillEffectKind.AoeStrike)
+        {
+            point = ResolveAoePoint(def, direction);
+        }
+
+        ClearClickToMoveDestination();
+        _skillCastState.Configure(slot, direction, point);
+        _stateMachine.ChangeState(_skillCastState);
+    }
+
+    private void StartSecondaryCastFromTargetingPoint(Vector2 point)
+    {
+        var direction = point - GlobalPosition;
+        if (direction == Vector2.Zero)
+        {
+            direction = _context.Facing;
+        }
+
+        ClearClickToMoveDestination();
+        _skillCastState.Configure(SkillSlot.Secondary, direction, point);
+        _stateMachine.ChangeState(_skillCastState);
+    }
+
+    private Vector2 ResolveCastDirection()
+    {
+        var aim = _currentCommand.AimVector;
+        if (aim.LengthSquared() > 0.01f)
+        {
+            return aim.Normalized();
+        }
+
+        var mouseDir = GetGlobalMousePosition() - GlobalPosition;
+        if (mouseDir.LengthSquared() > 0.01f)
+        {
+            return mouseDir.Normalized();
+        }
+
+        return _context.Facing == Vector2.Zero ? Vector2.Down : _context.Facing.Normalized();
+    }
+
+    private Vector2 ResolveAoePoint(SkillDefinition def, Vector2 direction)
+    {
+        // 优先：有合法目标且在范围内 -> 目标落点
+        if (TryResolveCurrentTarget(out var targetNode))
+        {
+            var d = GlobalPosition.DistanceTo(targetNode.GlobalPosition);
+            if (d <= def.Range)
+            {
+                return targetNode.GlobalPosition;
+            }
+        }
+
+        // 否则：朝方向落点并 clamp 到 range
+        var range = Mathf.Max(0f, def.Range);
+        return GlobalPosition + direction.Normalized() * range;
+    }
+
+    private AoeIndicator? GetOrCreateAoeIndicator()
+    {
+        if (_aoeIndicator != null && GodotObject.IsInstanceValid(_aoeIndicator))
+        {
+            return _aoeIndicator;
+        }
+
+        if (!Features.EnableAoeIndicator || _aoeIndicatorScene == null)
+        {
+            return null;
+        }
+
+        var instance = _aoeIndicatorScene.Instantiate<AoeIndicator>();
+        _aoeIndicator = instance;
+
+        // 挂到玩家父节点，确保与世界坐标一致
+        (GetParent() ?? this).AddChild(instance);
+        return instance;
+    }
+
+    private void SpawnSkillEffect(SkillDefinition def, Vector2 direction, Vector2? aoePoint)
+    {
+        // 技能效果尽量挂到世界节点（玩家父节点）。
+        var parent = GetParent() ?? this;
+
+        switch (def.EffectKind)
+        {
+            case SkillEffectKind.Projectile:
+                if (_projectileEffectScene == null)
+                {
+                    return;
+                }
+
+                var proj = _projectileEffectScene.Instantiate<ProjectileSkillEffect>();
+                proj.GlobalPosition = GlobalPosition;
+                proj.Direction = direction;
+                proj.AttackId = def.SkillId;
+                parent.AddChild(proj);
+                break;
+            case SkillEffectKind.AoeStrike:
+                if (_aoeStrikeEffectScene == null || aoePoint == null)
+                {
+                    return;
+                }
+
+                var aoe = _aoeStrikeEffectScene.Instantiate<AoeStrikeSkillEffect>();
+                aoe.GlobalPosition = aoePoint.Value;
+                aoe.Radius = def.AoeRadius;
+                aoe.AttackId = def.SkillId;
+                parent.AddChild(aoe);
+                break;
+            default:
+                break;
+        }
     }
 
     private bool HandleLeftClick()
