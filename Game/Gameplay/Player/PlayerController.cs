@@ -323,6 +323,12 @@ public partial class PlayerController : CharacterBody2D
 
     private void ApplySkillInput()
     {
+        // 选点瞄准状态下：技能输入由 TargetingState 消费（Confirm/Cancel），避免右键取消时触发 Busy Toast。
+        if (_context.IsTargeting)
+        {
+            return;
+        }
+
         // 瞄准/施法/攻击/翻滚期间不再触发新的技能。
         var isBusy =
             _context.IsAttacking

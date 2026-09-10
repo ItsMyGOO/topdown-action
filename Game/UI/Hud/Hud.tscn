@@ -47,6 +47,15 @@ text = "3"
 [node name="Skill4Label" type="Label" parent="Margin/VBox/SkillBar"]
 text = "4"
 
+[node name="TouchTargetingControls" type="HBoxContainer" parent="Margin/VBox"]
+visible = false
+
+[node name="ConfirmButton" type="Button" parent="Margin/VBox/TouchTargetingControls"]
+text = "确认"
+
+[node name="CancelButton" type="Button" parent="Margin/VBox/TouchTargetingControls"]
+text = "取消"
+
 [node name="ToastLabel" type="Label" parent="Margin/VBox"]
 visible = false
 text = ""

@@ -16,6 +16,9 @@ public partial class Hud : CanvasLayer
     private Label _goldLabel = default!;
     private Label _toastLabel = default!;
     private HBoxContainer _skillBar = default!;
+    private HBoxContainer _touchTargetingControls = default!;
+    private Button _confirmButton = default!;
+    private Button _cancelButton = default!;
     private Label _primaryLabel = default!;
     private Label _secondaryLabel = default!;
     private Label _skill1Label = default!;
@@ -32,6 +35,9 @@ public partial class Hud : CanvasLayer
         _manaLabel = GetNode<Label>("Margin/VBox/ManaLabel");
         _goldLabel = GetNode<Label>("Margin/VBox/GoldLabel");
         _skillBar = GetNode<HBoxContainer>("Margin/VBox/SkillBar");
+        _touchTargetingControls = GetNode<HBoxContainer>("Margin/VBox/TouchTargetingControls");
+        _confirmButton = GetNode<Button>("Margin/VBox/TouchTargetingControls/ConfirmButton");
+        _cancelButton = GetNode<Button>("Margin/VBox/TouchTargetingControls/CancelButton");
         _primaryLabel = GetNode<Label>("Margin/VBox/SkillBar/PrimaryLabel");
         _secondaryLabel = GetNode<Label>("Margin/VBox/SkillBar/SecondaryLabel");
         _skill1Label = GetNode<Label>("Margin/VBox/SkillBar/Skill1Label");
@@ -40,6 +46,12 @@ public partial class Hud : CanvasLayer
         _skill4Label = GetNode<Label>("Margin/VBox/SkillBar/Skill4Label");
         _toastLabel = GetNode<Label>("Margin/VBox/ToastLabel");
         _inventoryPanel = GetNode<InventoryPanel>("Margin/VBox/InventoryPanel");
+
+        // 触屏最小可用：Secondary 选点时提供确认/取消按钮。
+        _confirmButton.ButtonDown += () => _player?.TouchInput.SetConfirmPressed(true);
+        _confirmButton.ButtonUp += () => _player?.TouchInput.SetConfirmPressed(false);
+        _cancelButton.ButtonDown += () => _player?.TouchInput.SetCancelPressed(true);
+        _cancelButton.ButtonUp += () => _player?.TouchInput.SetCancelPressed(false);
     }
 
     public override void _Process(double delta)
@@ -47,6 +59,7 @@ public partial class Hud : CanvasLayer
         ResolvePlayer();
         UpdateHudText();
         UpdateSkillBar();
+        UpdateTouchTargetingControls();
         UpdateToast();
 
         if (Input.IsActionJustPressed("open_inventory"))
@@ -101,6 +114,27 @@ public partial class Hud : CanvasLayer
         if (_player.ActorContext.IsTargeting)
         {
             _secondaryLabel.Modulate = Colors.Yellow;
+        }
+    }
+
+    private void UpdateTouchTargetingControls()
+    {
+        if (_player == null)
+        {
+            _touchTargetingControls.Visible = false;
+            return;
+        }
+
+        // 仅在触屏设备上显示（鼠标/手柄仍走原交互）。
+        var isTouchscreen = DisplayServer.IsTouchscreenAvailable();
+        _touchTargetingControls.Visible =
+            isTouchscreen && _player.Features.EnableSkills && _player.ActorContext.IsTargeting;
+
+        if (!_touchTargetingControls.Visible)
+        {
+            // 避免按钮“卡住”导致边沿检测失效。
+            _player.TouchInput.SetConfirmPressed(false);
+            _player.TouchInput.SetCancelPressed(false);
         }
     }
 
