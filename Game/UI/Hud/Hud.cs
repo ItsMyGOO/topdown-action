@@ -48,7 +48,7 @@ public partial class Hud : CanvasLayer
 
         var stamina = _player.ActorContext.Stamina;
         _staminaLabel.Text = $"体力: {stamina.Current:0}/{stamina.Max:0}";
-        _goldLabel.Text = "金币: 0";
+        _goldLabel.Text = $"金币: {_player.Gold}";
     }
 
     private void ResolvePlayer()

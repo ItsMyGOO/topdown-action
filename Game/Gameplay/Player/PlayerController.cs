@@ -12,6 +12,7 @@ using GodotGameTemplate.Gameplay.Input;
 using GodotGameTemplate.Gameplay.Items;
 using GodotGameTemplate.Gameplay.Navigation;
 using GodotGameTemplate.Gameplay.Player.States;
+using GodotGameTemplate.Gameplay.Session;
 
 namespace GodotGameTemplate.Gameplay.Player;
 
@@ -42,14 +43,19 @@ public partial class PlayerController : CharacterBody2D
     private readonly TargetingService _targeting = new();
     private readonly CombatOrchestrator _combat = new();
     private readonly ClickToMoveModel _clickToMoveModel = new();
-    private readonly InventoryModel _inventory = new();
-    private readonly EquipmentModel _equipment = new();
+    private GameSession _session = default!;
 
     public GameFeatures Features { get; set; } = new();
 
-    public InventoryModel Inventory => _inventory;
+    public InventoryModel Inventory => _session.Inventory;
 
-    public EquipmentModel Equipment => _equipment;
+    public EquipmentModel Equipment => _session.Equipment;
+
+    public int Gold
+    {
+        get => _session.Gold;
+        set => _session.Gold = value;
+    }
 
     /// <summary>
     /// 角色运行时上下文（用于 HUD 读取体力等信息）。
@@ -65,6 +71,12 @@ public partial class PlayerController : CharacterBody2D
     {
         // 供 UI 快速定位玩家。
         AddToGroup("player");
+
+        _session =
+            GetNodeOrNull<GameSession>("/root/GameSession")
+            ?? throw new InvalidOperationException(
+                "GameSession autoload not found. Please ensure project.godot [autoload] is configured."
+            );
 
         Config ??= new PlayerConfig();
         AttackConfig ??= new PlayerAttackConfig();
@@ -250,7 +262,7 @@ public partial class PlayerController : CharacterBody2D
 
     private bool HandleLootClick(LootPickup loot)
     {
-        var ok = _inventory.TryAdd(loot.Item);
+        var ok = Inventory.TryAdd(loot.Item);
         if (ok)
         {
             loot.Pick();

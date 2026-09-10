@@ -1,0 +1,36 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="PackedScene" path="res://Game/Scenes/Player/Player.tscn" id="1_player"]
+[ext_resource type="Script" path="res://Game/Scenes/Town/TownController.cs" id="2_townctl"]
+[ext_resource type="PackedScene" path="res://Game/UI/Hud/Hud.tscn" id="3_hud"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_vendor"]
+size = Vector2(48, 48)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_portal"]
+size = Vector2(32, 32)
+
+[node name="Town" type="Node2D"]
+script = ExtResource("2_townctl")
+
+[node name="YSort" type="YSort" parent="."]
+
+[node name="Player" parent="YSort" instance=ExtResource("1_player")]
+position = Vector2(160, 90)
+
+[node name="Vendor" type="Area2D" parent="YSort" groups=["vendor"]]
+position = Vector2(224, 90)
+monitoring = true
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="YSort/Vendor"]
+shape = SubResource("RectangleShape2D_vendor")
+
+[node name="PortalToWorld" type="Area2D" parent="YSort" groups=["portal_to_world"]]
+position = Vector2(96, 90)
+monitoring = true
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="YSort/PortalToWorld"]
+shape = SubResource("RectangleShape2D_portal")
+
+[node name="Hud" parent="." instance=ExtResource("3_hud")]
+

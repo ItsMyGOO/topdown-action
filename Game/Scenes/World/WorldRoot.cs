@@ -4,6 +4,7 @@ using GodotGameTemplate.Config;
 using GodotGameTemplate.Game.Scenes.Items;
 using GodotGameTemplate.Gameplay.Enemies;
 using GodotGameTemplate.Gameplay.Items;
+using GodotGameTemplate.Gameplay.Player;
 
 namespace GodotGameTemplate.Game.Scenes.World;
 
@@ -12,6 +13,8 @@ namespace GodotGameTemplate.Game.Scenes.World;
 /// </summary>
 public partial class WorldRoot : Node2D
 {
+    private const string TownScenePath = "res://Game/Scenes/Town/Town.tscn";
+
     [Export]
     public PackedScene? LootPickupScene { get; set; }
 
@@ -19,15 +22,46 @@ public partial class WorldRoot : Node2D
 
     private Node? _lootContainer;
     private readonly LootDropper _lootDropper = new();
+    private Area2D? _portalToTown;
+    private PlayerController? _player;
 
     public override void _Ready()
     {
         _lootContainer = GetNodeOrNull("YSort") ?? this;
         LootPickupScene ??= GD.Load<PackedScene>("res://Game/Scenes/Items/LootPickup.tscn");
+        _portalToTown = GetNodeOrNull<Area2D>("YSort/PortalToTown");
 
         foreach (var enemy in FindDescendantsOfType<BasicEnemyController>(_lootContainer))
         {
             enemy.Died += OnEnemyDied;
+        }
+    }
+
+    public override void _PhysicsProcess(double delta)
+    {
+        if (!Input.IsActionJustPressed("interact"))
+        {
+            return;
+        }
+
+        if (_portalToTown == null)
+        {
+            return;
+        }
+
+        ResolvePlayer();
+        if (_player == null)
+        {
+            return;
+        }
+
+        foreach (var body in _portalToTown.GetOverlappingBodies())
+        {
+            if (body == _player)
+            {
+                GetTree().ChangeSceneToFile(TownScenePath);
+                return;
+            }
         }
     }
 
@@ -62,5 +96,15 @@ public partial class WorldRoot : Node2D
                 }
             }
         }
+    }
+
+    private void ResolvePlayer()
+    {
+        if (_player != null && GodotObject.IsInstanceValid(_player))
+        {
+            return;
+        }
+
+        _player = GetTree().GetFirstNodeInGroup("player") as PlayerController;
     }
 }
