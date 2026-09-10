@@ -27,6 +27,9 @@ text = "法力: --/--"
 [node name="GoldLabel" type="Label" parent="Margin/VBox"]
 text = "金币: 0"
 
+[node name="LevelLabel" type="Label" parent="Margin/VBox"]
+text = "等级: --"
+
 [node name="SkillBar" type="HBoxContainer" parent="Margin/VBox"]
 
 [node name="PrimaryLabel" type="Label" parent="Margin/VBox/SkillBar"]

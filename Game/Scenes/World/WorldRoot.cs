@@ -69,8 +69,13 @@ public partial class WorldRoot : Node2D
         }
     }
 
-    private void OnEnemyDied(Vector2 pos)
+    private void OnEnemyDied(Vector2 pos, int xpReward)
     {
+        if (Features.EnableLeveling && _session != null)
+        {
+            _session.Leveling.AddXp(xpReward);
+        }
+
         // 该信号可能来自物理回调（例如 Area2D.BodyEntered）期间。
         // 在 flushing queries 阶段直接 AddChild/改监测状态会触发引擎报错：
         // "Can't change this state while flushing queries."

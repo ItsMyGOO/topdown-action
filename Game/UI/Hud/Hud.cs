@@ -14,6 +14,7 @@ public partial class Hud : CanvasLayer
     private Label _staminaLabel = default!;
     private Label _manaLabel = default!;
     private Label _goldLabel = default!;
+    private Label _levelLabel = default!;
     private Label _toastLabel = default!;
     private HBoxContainer _skillBar = default!;
     private HBoxContainer _touchTargetingControls = default!;
@@ -34,6 +35,7 @@ public partial class Hud : CanvasLayer
         _staminaLabel = GetNode<Label>("Margin/VBox/StaminaLabel");
         _manaLabel = GetNode<Label>("Margin/VBox/ManaLabel");
         _goldLabel = GetNode<Label>("Margin/VBox/GoldLabel");
+        _levelLabel = GetNode<Label>("Margin/VBox/LevelLabel");
         _skillBar = GetNode<HBoxContainer>("Margin/VBox/SkillBar");
         _touchTargetingControls = GetNode<HBoxContainer>("Margin/VBox/TouchTargetingControls");
         _confirmButton = GetNode<Button>("Margin/VBox/TouchTargetingControls/ConfirmButton");
@@ -79,6 +81,7 @@ public partial class Hud : CanvasLayer
             _staminaLabel.Text = "体力: --/--";
             _manaLabel.Text = "法力: --/--";
             _goldLabel.Text = "金币: 0";
+            _levelLabel.Visible = false;
             return;
         }
 
@@ -87,6 +90,14 @@ public partial class Hud : CanvasLayer
         _staminaLabel.Text = $"体力: {stamina.Current:0}/{stamina.Max:0}";
         _manaLabel.Text = $"法力: {mana.Current:0}/{mana.Max:0}";
         _goldLabel.Text = $"金币: {_player.Gold}";
+
+        var leveling = _player.Leveling;
+        _levelLabel.Visible = leveling != null;
+        if (leveling != null)
+        {
+            _levelLabel.Text =
+                $"等级: {leveling.Level}  经验: {leveling.CurrentXp}/{leveling.XpToNextLevel}";
+        }
     }
 
     private void UpdateSkillBar()

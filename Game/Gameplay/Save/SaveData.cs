@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using GodotGameTemplate.Gameplay.Items;
+using GodotGameTemplate.Gameplay.Progression;
 
 namespace GodotGameTemplate.Gameplay.Save;
 
@@ -10,6 +11,16 @@ namespace GodotGameTemplate.Gameplay.Save;
 public sealed class SaveData
 {
     public int Gold { get; set; }
+
+    /// <summary>
+    /// 角色等级；旧存档缺省为 1。
+    /// </summary>
+    public int Level { get; set; } = 1;
+
+    /// <summary>
+    /// 当前等级内已积累经验；旧存档缺省为 0。
+    /// </summary>
+    public int CurrentXp { get; set; }
 
     public List<SaveItemInstanceData> InventoryItems { get; set; } = [];
 
@@ -66,12 +77,15 @@ public static class SaveDataMapper
     public static SaveData FromState(
         int gold,
         IEnumerable<ItemInstance> inventoryItems,
-        EquipmentModel equipment
+        EquipmentModel equipment,
+        LevelingModel? leveling = null
     )
     {
         return new SaveData
         {
             Gold = gold,
+            Level = leveling?.Level ?? 1,
+            CurrentXp = leveling?.CurrentXp ?? 0,
             InventoryItems = [.. inventoryItems.Select(SaveItemInstanceData.FromItemInstance)],
             EquipmentSlots = new SaveEquipmentSlotsData
             {
@@ -94,7 +108,8 @@ public static class SaveDataMapper
     public static int ApplyToState(
         SaveData data,
         InventoryModel inventory,
-        EquipmentModel equipment
+        EquipmentModel equipment,
+        LevelingModel? leveling = null
     )
     {
         inventory.ReplaceItems(data.InventoryItems.Select(item => item.ToItemInstance()));
@@ -103,6 +118,14 @@ public static class SaveDataMapper
             data.EquipmentSlots.Armor?.ToItemInstance(),
             data.EquipmentSlots.Accessory?.ToItemInstance()
         );
+
+        if (leveling != null)
+        {
+            leveling.Restore(
+                data.Level > 0 ? data.Level : 1,
+                data.CurrentXp > 0 ? data.CurrentXp : 0
+            );
+        }
 
         return data.Gold;
     }

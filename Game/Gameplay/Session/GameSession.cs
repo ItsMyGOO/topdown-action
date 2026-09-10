@@ -20,6 +20,8 @@ public partial class GameSession : Node
 
     public CooldownModel Cooldowns { get; } = new();
 
+    public LevelingModel Leveling { get; } = new();
+
     public ISaveService SaveService { get; set; } = new SaveService();
 
     public int Gold { get; set; }
@@ -49,11 +51,11 @@ public partial class GameSession : Node
 
     public SaveData ToSaveData()
     {
-        return SaveDataMapper.FromState(Gold, Inventory.Items, Equipment);
+        return SaveDataMapper.FromState(Gold, Inventory.Items, Equipment, Leveling);
     }
 
     public void ApplySaveData(SaveData data)
     {
-        Gold = SaveDataMapper.ApplyToState(data, Inventory, Equipment);
+        Gold = SaveDataMapper.ApplyToState(data, Inventory, Equipment, Leveling);
     }
 }

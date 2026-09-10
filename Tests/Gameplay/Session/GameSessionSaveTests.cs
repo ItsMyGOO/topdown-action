@@ -1,4 +1,5 @@
 using GodotGameTemplate.Gameplay.Items;
+using GodotGameTemplate.Gameplay.Progression;
 using GodotGameTemplate.Gameplay.Save;
 
 namespace GodotGameTemplate.Tests.Gameplay.Session;
@@ -130,5 +131,63 @@ public sealed class GameSessionSaveTests
         Assert.Equal(0, gold);
         Assert.Empty(inventory.Items);
         Assert.Null(equipment.Weapon);
+    }
+
+    [Fact]
+    public void SaveDataMapper_FromState_MapsLevelingIntoSaveData()
+    {
+        var inventory = new InventoryModel();
+        var equipment = new EquipmentModel();
+        var leveling = new LevelingModel();
+        leveling.AddXp(LevelingModel.BaseXpPerLevel + 10);
+
+        var data = SaveDataMapper.FromState(0, inventory.Items, equipment, leveling);
+
+        Assert.Equal(2, data.Level);
+        Assert.Equal(10, data.CurrentXp);
+    }
+
+    [Fact]
+    public void SaveDataMapper_ApplyToState_RestoresLevelingState()
+    {
+        var data = new SaveData { Level = 3, CurrentXp = 40 };
+        var inventory = new InventoryModel();
+        var equipment = new EquipmentModel();
+        var leveling = new LevelingModel();
+
+        SaveDataMapper.ApplyToState(data, inventory, equipment, leveling);
+
+        Assert.Equal(3, leveling.Level);
+        Assert.Equal(40, leveling.CurrentXp);
+    }
+
+    [Fact]
+    public void SaveDataMapper_ApplyToState_WithLegacySaveWithoutLevel_KeepsDefaults()
+    {
+        var data = new SaveData();
+        var inventory = new InventoryModel();
+        var equipment = new EquipmentModel();
+        var leveling = new LevelingModel();
+        leveling.AddXp(20);
+
+        SaveDataMapper.ApplyToState(data, inventory, equipment, leveling);
+
+        // 旧存档没有等级字段（反序列化后为默认值 1/0），加载后不应保留内存中的进度。
+        Assert.Equal(1, leveling.Level);
+        Assert.Equal(0, leveling.CurrentXp);
+    }
+
+    [Fact]
+    public void SaveDataMapper_ApplyToState_WithInvalidLevelData_FallsBackToDefaults()
+    {
+        var data = new SaveData { Level = -2, CurrentXp = -10 };
+        var inventory = new InventoryModel();
+        var equipment = new EquipmentModel();
+        var leveling = new LevelingModel();
+
+        SaveDataMapper.ApplyToState(data, inventory, equipment, leveling);
+
+        Assert.Equal(1, leveling.Level);
+        Assert.Equal(0, leveling.CurrentXp);
     }
 }

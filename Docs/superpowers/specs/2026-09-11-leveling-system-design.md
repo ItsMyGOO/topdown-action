@@ -40,16 +40,18 @@
 - `XpToNextLevel => BaseXpPerLevel * Level`：升级所需经验（线性曲线，`BaseXpPerLevel = 50`；后续可替换曲线而不改调用方）
 - `AddXp(int amount)`：负数与零忽略；返回 `LevelUpResult(int LevelsGained, int NewLevel)`（只读 record）
 - 升级加成常量：`BonusManaPerLevel = 2`、`BonusStaminaPerLevel = 2`（每级，相对 1 级基准）
-- `ApplyGrowth(StaminaModel? stamina, ManaModel? mana)`：把尚未应用的等级加成增量应用到传入模型（内部以 `AppliedGrowthLevel` 记账，幂等；允许传 `null` 跳过其一——法力由会话侧应用，体力由玩家绑定侧应用）
+- `ApplyGrowth(StaminaModel? stamina, ManaModel? mana)`：把尚未应用的等级加成增量应用到传入模型（内部以 `AppliedGrowthLevel` 记账，幂等；允许传 `null` 跳过其一）
+- `Restore(int level, int xp)`：读档入口；把成长记账重置为 1 级，等待外部重新 `ApplyGrowth` 补发加成（资源模型的 Max 不随存档持久化）
 
 ### 经验来源（Godot 胶水）
 
 - `BasicEnemyController` 增加 `[Export] int XpReward = 5`，`Died` 信号签名扩展为 `(Vector2 pos, int xpReward)`
-- `WorldRoot.OnEnemyDied`：在 `Features.EnableLeveling` 且会话存在时调用 `_session.Leveling.AddXp(xpReward)`，随后 `_session.Leveling.ApplyGrowth(null, _session.Mana)`（会话持有的法力立即生效，跨场景保持）
+- `WorldRoot.OnEnemyDied`：在 `Features.EnableLeveling` 且会话存在时调用 `_session.Leveling.AddXp(xpReward)`；只发放经验，不做加成结算
 
-### 玩家体力成长（Godot 胶水）
+### 玩家成长结算（Godot 胶水）
 
-- `PlayerController` 持有会话引用，在帧逻辑中检测 `Leveling.AppliedGrowthLevel != Leveling.Level`（且 `EnableLeveling`），对 `_context.Stamina` 调用 `ApplyGrowth(stamina, null)`；模型内部记账保证不会重复加成
+- `PlayerController` 在帧逻辑中检测 `Leveling.AppliedGrowthLevel != Leveling.Level`（且 `EnableLeveling`），对 `_context.Stamina` 与 `_context.Mana` 统一调用 `ApplyGrowth`，并在升级时弹出提示；读档后的加成补发也由此覆盖，模型内部记账保证不会重复加成
+- 玩家暴露只读 `Leveling`（功能关闭时为 `null`）供 HUD 判断显隐与读取进度
 
 ### 存档
 

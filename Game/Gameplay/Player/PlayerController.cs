@@ -14,6 +14,7 @@ using GodotGameTemplate.Gameplay.Input.Commands;
 using GodotGameTemplate.Gameplay.Items;
 using GodotGameTemplate.Gameplay.Navigation;
 using GodotGameTemplate.Gameplay.Player.States;
+using GodotGameTemplate.Gameplay.Progression;
 using GodotGameTemplate.Gameplay.Session;
 using GodotGameTemplate.Gameplay.Skills;
 
@@ -72,6 +73,11 @@ public partial class PlayerController : CharacterBody2D
 
     public string SkillToastMessage =>
         _skillToastRemainingSeconds > 0d ? _skillToastMessage : string.Empty;
+
+    /// <summary>
+    /// 等级/经验模型（来自会话）；功能关闭时为 <c>null</c>（供 HUD 判断显隐）。
+    /// </summary>
+    public LevelingModel? Leveling => Features.EnableLeveling ? _session.Leveling : null;
 
     public GameFeatures Features { get; set; } = new();
 
@@ -231,6 +237,7 @@ public partial class PlayerController : CharacterBody2D
             _context.Mana.Tick((float)delta);
             _context.Cooldowns.Tick((float)delta);
         }
+        ReconcileLevelGrowth();
         var evadePressed = _currentCommand.EvadePressed;
         if (
             evadePressed
@@ -378,6 +385,28 @@ public partial class PlayerController : CharacterBody2D
             _ => "无法施放",
         };
         _skillToastRemainingSeconds = 1.0d;
+    }
+
+    /// <summary>
+    /// 结算尚未应用的等级加成（含读档后需要补发的部分），
+    /// 并在升级时给出提示。模型内部记账保证不会重复发放。
+    /// </summary>
+    private void ReconcileLevelGrowth()
+    {
+        var leveling = _session.Leveling;
+        if (!Features.EnableLeveling || leveling.AppliedGrowthLevel == leveling.Level)
+        {
+            return;
+        }
+
+        var previousLevel = leveling.AppliedGrowthLevel;
+        leveling.ApplyGrowth(_context.Stamina, _context.Mana);
+
+        if (leveling.AppliedGrowthLevel > previousLevel)
+        {
+            _skillToastMessage = $"升级! Lv.{leveling.Level}";
+            _skillToastRemainingSeconds = 2.0d;
+        }
     }
 
     private void StartInstantCast(SkillSlot slot)
