@@ -61,6 +61,16 @@ public sealed class LevelingModel
     public int AppliedGrowthLevel { get; private set; } = 1;
 
     /// <summary>
+    /// 外部来源的最大法力加成（如装备词条）。由结算方在 <see cref="ApplyGrowth"/> 前写入。
+    /// </summary>
+    public float ExternalManaBonus { get; set; }
+
+    /// <summary>
+    /// 外部来源的最大体力加成（如装备词条）。由结算方在 <see cref="ApplyGrowth"/> 前写入。
+    /// </summary>
+    public float ExternalStaminaBonus { get; set; }
+
+    /// <summary>
     /// 升到下一级所需的经验（随等级增长）。
     /// </summary>
     public int XpToNextLevel => BaseXpPerLevel * Level;
@@ -103,7 +113,8 @@ public sealed class LevelingModel
     }
 
     /// <summary>
-    /// 把等级加成应用到传入的资源模型（绝对式赋值：基准 + 每级加成×已达等级）。
+    /// 把等级加成与外部加成（装备词条）合并应用到传入的资源模型
+    /// （绝对式赋值：基准 + 每级加成×已达等级 + 外部加成）。
     /// <para>
     /// 绝对式赋值天然幂等：读档后（<see cref="Restore"/>）重复结算不会叠加加成。
     /// 允许传 <c>null</c> 跳过其一。
@@ -115,12 +126,13 @@ public sealed class LevelingModel
 
         if (stamina != null)
         {
-            stamina.Max = BaseStaminaMax + BonusStaminaPerLevel * gainedLevels;
+            stamina.Max =
+                BaseStaminaMax + BonusStaminaPerLevel * gainedLevels + ExternalStaminaBonus;
         }
 
         if (mana != null)
         {
-            mana.Max = BaseManaMax + BonusManaPerLevel * gainedLevels;
+            mana.Max = BaseManaMax + BonusManaPerLevel * gainedLevels + ExternalManaBonus;
         }
 
         AppliedGrowthLevel = Level;

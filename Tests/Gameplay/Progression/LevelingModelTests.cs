@@ -154,4 +154,35 @@ public sealed class LevelingModelTests
 
         Assert.Equal(1, leveling.AppliedGrowthLevel);
     }
+
+    [Fact]
+    public void ApplyGrowth_CombinesExternalEquipmentBonusWithLevelBonus()
+    {
+        var leveling = new LevelingModel { ExternalManaBonus = 12f, ExternalStaminaBonus = 7f };
+        var mana = new ManaModel();
+        var stamina = new StaminaModel();
+
+        leveling.AddXp(LevelingModel.BaseXpPerLevel);
+        leveling.ApplyGrowth(stamina, mana);
+
+        // 等级加成 +2 与装备加成 12/7 叠加在基准 100 上。
+        Assert.Equal(114f, mana.Max);
+        Assert.Equal(109f, stamina.Max);
+    }
+
+    [Fact]
+    public void ApplyGrowth_WithExternalBonus_IsIdempotentAcrossReloads()
+    {
+        var leveling = new LevelingModel { ExternalManaBonus = 10f };
+        var mana = new ManaModel();
+
+        leveling.AddXp(LevelingModel.BaseXpPerLevel);
+        leveling.ApplyGrowth(null, mana);
+        Assert.Equal(112f, mana.Max);
+
+        leveling.Restore(2, 0);
+        leveling.ApplyGrowth(null, mana);
+
+        Assert.Equal(112f, mana.Max);
+    }
 }
