@@ -49,6 +49,17 @@ public sealed class EliteRollerTests
     }
 
     [Fact]
+    public void TryRoll_SwiftAffix_BoostsSpeedAndXp()
+    {
+        var plan = RollUntilAffix(EliteAffix.Swift);
+
+        Assert.Equal(1.6f, plan.SpeedMultiplier);
+        Assert.Equal(1.25f, plan.XpMultiplier);
+        Assert.Equal(1f, plan.HpMultiplier);
+        Assert.Equal(1, plan.DropCount);
+    }
+
+    [Fact]
     public void TryRoll_RichAffix_GrantsGoldWithinRange()
     {
         for (var seed = 0; seed < 100; seed++)
@@ -74,6 +85,7 @@ public sealed class EliteRollerTests
         Assert.Equal(10f, plan.HpMultiplier);
         Assert.Equal(10f, plan.XpMultiplier);
         Assert.Equal(3f, plan.DamageMultiplier);
+        Assert.Equal(1.15f, plan.SpeedMultiplier);
         Assert.Equal(50, plan.GoldBonus);
         Assert.Equal(2, plan.DropCount);
         Assert.Equal(ItemRarity.Rare, plan.RarityFloor);

@@ -18,6 +18,9 @@ public enum EliteAffix
 
     /// <summary>富有：击杀立即掉落金币。</summary>
     Rich,
+
+    /// <summary>迅捷：移动速度 ×1.6、经验 ×1.25。</summary>
+    Swift,
 }
 
 /// <summary>
@@ -31,6 +34,7 @@ public enum EliteAffix
 /// <param name="DropCount">死亡掉落件数。</param>
 /// <param name="RarityFloor">掉落稀有度下限。</param>
 /// <param name="DamageMultiplier">敌人伤害倍率。</param>
+/// <param name="SpeedMultiplier">敌人移动速度倍率。</param>
 public sealed record ElitePlan(
     bool IsBoss,
     EliteAffix Affix,
@@ -39,7 +43,8 @@ public sealed record ElitePlan(
     int GoldBonus,
     int DropCount,
     ItemRarity RarityFloor,
-    float DamageMultiplier = 1f
+    float DamageMultiplier = 1f,
+    float SpeedMultiplier = 1f
 );
 
 /// <summary>
@@ -65,7 +70,7 @@ public static class EliteRoller
             return null;
         }
 
-        var affix = (EliteAffix)random.Next(1, 4);
+        var affix = (EliteAffix)random.Next(1, 5);
         return CreatePlan(false, affix, random);
     }
 
@@ -74,7 +79,7 @@ public static class EliteRoller
     /// </summary>
     public static ElitePlan Boss()
     {
-        return new ElitePlan(true, EliteAffix.None, 10f, 10f, 50, 2, ItemRarity.Rare, 3f);
+        return new ElitePlan(true, EliteAffix.None, 10f, 10f, 50, 2, ItemRarity.Rare, 3f, 1.15f);
     }
 
     private static ElitePlan CreatePlan(bool isBoss, EliteAffix affix, Random random)
@@ -92,6 +97,17 @@ public static class EliteRoller
                 1,
                 ItemRarity.Common,
                 1f
+            ),
+            EliteAffix.Swift => new ElitePlan(
+                isBoss,
+                affix,
+                1f,
+                1.25f,
+                0,
+                1,
+                ItemRarity.Common,
+                1f,
+                1.6f
             ),
             _ => new ElitePlan(isBoss, affix, 1f, 1f, 0, 1, ItemRarity.Common, 1f),
         };
