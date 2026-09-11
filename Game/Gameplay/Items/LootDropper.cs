@@ -1,11 +1,19 @@
+using System;
+
 namespace GodotGameTemplate.Gameplay.Items;
 
 /// <summary>
-/// 掉落抽取（首版极简：固定掉落一件武器，稀有度按概率抽取）。
+/// 掉落抽取（纯逻辑）：
+/// 全槽位随机、稀有度概率 70/25/5、强度按稀有度、词缀按稀有度预算生成。
 /// </summary>
 public sealed class LootDropper
 {
-    private readonly System.Random _random = new();
+    private readonly Random _random;
+
+    public LootDropper(int? seed = null)
+    {
+        _random = seed.HasValue ? new Random(seed.Value) : new Random();
+    }
 
     public ItemInstance RollBasicDrop()
     {
@@ -23,11 +31,16 @@ public sealed class LootDropper
             _ => 1,
         };
 
+        var slots = EquipmentModel.AllSlots;
+        var slot = slots[_random.Next(slots.Count)];
+        var affixes = AffixTable.Roll(rarity, _random);
+
         return new ItemInstance(
-            Id: "weapon_sword_basic",
-            Slot: ItemSlot.Weapon,
+            Id: $"loot_{slot.ToString().ToLowerInvariant()}",
+            Slot: slot,
             Rarity: rarity,
-            Power: power
+            Power: power,
+            Affixes: affixes
         );
     }
 }
