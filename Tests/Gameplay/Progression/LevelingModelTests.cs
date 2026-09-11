@@ -126,4 +126,32 @@ public sealed class LevelingModelTests
 
         Assert.Equal(100f, mana.Max);
     }
+
+    [Fact]
+    public void ApplyGrowth_AfterRestore_DoesNotStackBonusOnAlreadyGrownModels()
+    {
+        var leveling = new LevelingModel();
+        var mana = new ManaModel();
+
+        leveling.AddXp(LevelingModel.BaseXpPerLevel);
+        leveling.ApplyGrowth(null, mana);
+        Assert.Equal(102f, mana.Max);
+
+        // 模拟会话中途读档：模型 Max 仍带着已应用的加成。
+        leveling.Restore(2, 0);
+        leveling.ApplyGrowth(null, mana);
+
+        Assert.Equal(102f, mana.Max);
+    }
+
+    [Fact]
+    public void Restore_ResetsGrowthAccountingForReapply()
+    {
+        var leveling = new LevelingModel();
+        leveling.AddXp(LevelingModel.BaseXpPerLevel);
+
+        leveling.Restore(3, 40);
+
+        Assert.Equal(1, leveling.AppliedGrowthLevel);
+    }
 }

@@ -36,6 +36,16 @@ public sealed class LevelingModel
     public const float BonusStaminaPerLevel = 2f;
 
     /// <summary>
+    /// 资源模型的基准 Max（与 <see cref="ManaModel"/>/<see cref="StaminaModel"/> 默认值一致）。
+    /// </summary>
+    public const float BaseManaMax = 100f;
+
+    /// <summary>
+    /// 体力模型的基准 Max。
+    /// </summary>
+    public const float BaseStaminaMax = 100f;
+
+    /// <summary>
     /// 当前等级，从 1 开始，单调递增。
     /// </summary>
     public int Level { get; private set; } = 1;
@@ -93,28 +103,24 @@ public sealed class LevelingModel
     }
 
     /// <summary>
-    /// 把尚未应用的等级加成增量应用到传入的资源模型。
+    /// 把等级加成应用到传入的资源模型（绝对式赋值：基准 + 每级加成×已达等级）。
     /// <para>
-    /// 允许传 <c>null</c> 跳过其一（例如法力由会话侧应用、体力由玩家绑定侧应用）。
-    /// 内部记账保证同一批等级的加成不会被重复发放。
+    /// 绝对式赋值天然幂等：读档后（<see cref="Restore"/>）重复结算不会叠加加成。
+    /// 允许传 <c>null</c> 跳过其一。
     /// </para>
     /// </summary>
     public void ApplyGrowth(StaminaModel? stamina, ManaModel? mana)
     {
-        var pendingLevels = Level - AppliedGrowthLevel;
-        if (pendingLevels <= 0)
-        {
-            return;
-        }
+        var gainedLevels = Level - 1;
 
         if (stamina != null)
         {
-            stamina.Max += BonusStaminaPerLevel * pendingLevels;
+            stamina.Max = BaseStaminaMax + BonusStaminaPerLevel * gainedLevels;
         }
 
         if (mana != null)
         {
-            mana.Max += BonusManaPerLevel * pendingLevels;
+            mana.Max = BaseManaMax + BonusManaPerLevel * gainedLevels;
         }
 
         AppliedGrowthLevel = Level;
