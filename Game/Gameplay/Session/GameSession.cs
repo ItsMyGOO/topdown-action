@@ -1,6 +1,7 @@
 using Godot;
 using GodotGameTemplate.Gameplay.Items;
 using GodotGameTemplate.Gameplay.Progression;
+using GodotGameTemplate.Gameplay.Progression.Talents;
 using GodotGameTemplate.Gameplay.Save;
 using GodotGameTemplate.Gameplay.Skills;
 
@@ -21,6 +22,8 @@ public partial class GameSession : Node
     public CooldownModel Cooldowns { get; } = new();
 
     public LevelingModel Leveling { get; } = new();
+
+    public TalentModel Talents { get; } = new();
 
     public ISaveService SaveService { get; set; } = new SaveService();
 
@@ -51,11 +54,11 @@ public partial class GameSession : Node
 
     public SaveData ToSaveData()
     {
-        return SaveDataMapper.FromState(Gold, Inventory.Items, Equipment, Leveling);
+        return SaveDataMapper.FromState(Gold, Inventory.Items, Equipment, Leveling, Talents);
     }
 
     public void ApplySaveData(SaveData data)
     {
-        Gold = SaveDataMapper.ApplyToState(data, Inventory, Equipment, Leveling);
+        Gold = SaveDataMapper.ApplyToState(data, Inventory, Equipment, Leveling, Talents);
     }
 }

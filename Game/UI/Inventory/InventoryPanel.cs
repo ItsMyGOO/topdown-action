@@ -25,6 +25,8 @@ public partial class InventoryPanel : PanelContainer
 
         foreach (var child in _itemsList.GetChildren().OfType<Node>().ToArray())
         {
+            // 立即摘除再延迟释放：避免同帧重复 Refresh 时旧行仍在树上造成重复。
+            _itemsList.RemoveChild(child);
             child.QueueFree();
         }
 

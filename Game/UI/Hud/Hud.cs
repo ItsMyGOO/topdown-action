@@ -1,5 +1,6 @@
 using Godot;
 using GodotGameTemplate.Game.UI.Inventory;
+using GodotGameTemplate.Game.UI.Talents;
 using GodotGameTemplate.Gameplay.Player;
 using GodotGameTemplate.Gameplay.Skills;
 using SkillSlot = GodotGameTemplate.Gameplay.Input.Commands.SkillSlot;
@@ -28,6 +29,7 @@ public partial class Hud : CanvasLayer
     private Label _skill3Label = default!;
     private Label _skill4Label = default!;
     private InventoryPanel _inventoryPanel = default!;
+    private TalentPanel _talentPanel = default!;
 
     private PlayerController? _player;
 
@@ -50,6 +52,7 @@ public partial class Hud : CanvasLayer
         _skill4Label = GetNode<Label>("Margin/VBox/SkillBar/Skill4Label");
         _toastLabel = GetNode<Label>("Margin/VBox/ToastLabel");
         _inventoryPanel = GetNode<InventoryPanel>("Margin/VBox/InventoryPanel");
+        _talentPanel = GetNode<TalentPanel>("Margin/VBox/TalentPanel");
 
         // 触屏最小可用：Secondary 选点时提供确认/取消按钮。
         _confirmButton.ButtonDown += () => _player?.TouchInput.SetConfirmPressed(true);
@@ -72,6 +75,15 @@ public partial class Hud : CanvasLayer
             if (_inventoryPanel.Visible)
             {
                 _inventoryPanel.Refresh();
+            }
+        }
+
+        if (Input.IsActionJustPressed("open_talents"))
+        {
+            _talentPanel.Visible = !_talentPanel.Visible;
+            if (_talentPanel.Visible)
+            {
+                _talentPanel.Refresh();
             }
         }
     }

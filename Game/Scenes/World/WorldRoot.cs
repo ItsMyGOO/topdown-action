@@ -6,6 +6,7 @@ using GodotGameTemplate.Game.Scenes.Items;
 using GodotGameTemplate.Gameplay.Enemies;
 using GodotGameTemplate.Gameplay.Items;
 using GodotGameTemplate.Gameplay.Player;
+using GodotGameTemplate.Gameplay.Progression.Talents;
 using GodotGameTemplate.Gameplay.Session;
 
 namespace GodotGameTemplate.Game.Scenes.World;
@@ -86,8 +87,10 @@ public partial class WorldRoot : Node2D
 
         if (Features.EnableLeveling && _session != null)
         {
-            var stats = EquipmentStats.Summarize(_session.Equipment);
-            _session.Leveling.AddXp((int)(xpReward * stats.XpMultiplier));
+            var equipStats = EquipmentStats.Summarize(_session.Equipment);
+            var talentStats = TalentStats.Aggregate(_session.Talents);
+            var xp = (int)(xpReward * equipStats.XpMultiplier * talentStats.XpMultiplier);
+            _session.Leveling.AddXp(xp);
         }
 
         if (plan != null && Features.EnableLoot && _session != null)

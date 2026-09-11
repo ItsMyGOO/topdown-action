@@ -15,6 +15,7 @@ using GodotGameTemplate.Gameplay.Items;
 using GodotGameTemplate.Gameplay.Navigation;
 using GodotGameTemplate.Gameplay.Player.States;
 using GodotGameTemplate.Gameplay.Progression;
+using GodotGameTemplate.Gameplay.Progression.Talents;
 using GodotGameTemplate.Gameplay.Session;
 using GodotGameTemplate.Gameplay.Skills;
 
@@ -72,14 +73,15 @@ public partial class PlayerController : CharacterBody2D
     private string _skillToastMessage = string.Empty;
     private double _skillToastRemainingSeconds;
     private bool _respawnQueued;
+    private TalentStatSummary _talentStats = TalentStats.Aggregate(new TalentModel());
 
     public string SkillToastMessage =>
         _skillToastRemainingSeconds > 0d ? _skillToastMessage : string.Empty;
 
     /// <summary>
-    /// 当前攻击伤害（武器 Power；未持武器为 1）。
+    /// 当前攻击伤害（武器 Power + 力量天赋；未持武器为基础 1）。
     /// </summary>
-    public int AttackDamage => Equipment.Weapon?.Power ?? 1;
+    public int AttackDamage => (Equipment.Weapon?.Power ?? 1) + _talentStats.BonusDamage;
 
     /// <summary>
     /// 当前护甲（非武器已装备槽 Power 之和），减免受到的伤害。
@@ -90,6 +92,11 @@ public partial class PlayerController : CharacterBody2D
     /// 等级/经验模型（来自会话）；功能关闭时为 <c>null</c>（供 HUD 判断显隐）。
     /// </summary>
     public LevelingModel? Leveling => Features.EnableLeveling ? _session.Leveling : null;
+
+    /// <summary>
+    /// 天赋盘模型（来自会话，供天赋面板读写）。
+    /// </summary>
+    public TalentModel SessionTalents => _session.Talents;
 
     public GameFeatures Features { get; set; } = new();
 
@@ -148,6 +155,7 @@ public partial class PlayerController : CharacterBody2D
 
         AttackHitbox.SourceNode = this;
         AttackHitbox.AttackId = AttackConfig.AttackId;
+        RefreshTalentStats();
         AttackHitbox.Damage = AttackDamage;
 
         _stateMachine = new StateMachine<ActorContext>(_context);
@@ -157,7 +165,7 @@ public partial class PlayerController : CharacterBody2D
         ClickToMove ??= GetNodeOrNull<ClickToMoveController>("ClickToMove");
         if (ClickToMove != null)
         {
-            ClickToMove.MaxSpeed = Config.MoveSpeed;
+            ClickToMove.MaxSpeed = Config.MoveSpeed * _talentStats.MoveSpeedMultiplier;
         }
 
         // Skill scenes
@@ -210,7 +218,7 @@ public partial class PlayerController : CharacterBody2D
 
         if (ClickToMove != null)
         {
-            ClickToMove.MaxSpeed = Config.MoveSpeed;
+            ClickToMove.MaxSpeed = Config.MoveSpeed * _talentStats.MoveSpeedMultiplier;
         }
 
         // 瞄准期间，左键用于确认释放，不再用于拾取/选中/点击移动。
@@ -415,9 +423,12 @@ public partial class PlayerController : CharacterBody2D
             return;
         }
 
+        RefreshTalentStats();
+
         var stats = EquipmentStats.Summarize(_session.Equipment);
-        leveling.ExternalManaBonus = stats.MaxManaBonus;
-        leveling.ExternalStaminaBonus = stats.MaxStaminaBonus;
+        leveling.ExternalManaBonus = stats.MaxManaBonus + _talentStats.BonusMaxMana;
+        leveling.ExternalStaminaBonus = stats.MaxStaminaBonus + _talentStats.BonusMaxStamina;
+        leveling.ExternalHealthBonus = _talentStats.BonusMaxHealth;
 
         var manaInSync = Mathf.IsEqualApprox(_context.Mana.Max, leveling.DesiredManaMax);
         var staminaInSync = Mathf.IsEqualApprox(_context.Stamina.Max, leveling.DesiredStaminaMax);
@@ -435,6 +446,14 @@ public partial class PlayerController : CharacterBody2D
             _skillToastMessage = $"升级! Lv.{leveling.Level}";
             _skillToastRemainingSeconds = 2.0d;
         }
+    }
+
+    /// <summary>
+    /// 刷新天赋属性聚合（分配天赋或读档后由结算方调用）。
+    /// </summary>
+    private void RefreshTalentStats()
+    {
+        _talentStats = TalentStats.Aggregate(_session.Talents);
     }
 
     /// <summary>
