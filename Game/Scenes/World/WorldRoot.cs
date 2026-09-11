@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Godot;
 using GodotGameTemplate.Config;
@@ -10,7 +11,8 @@ using GodotGameTemplate.Gameplay.Session;
 namespace GodotGameTemplate.Game.Scenes.World;
 
 /// <summary>
-/// 世界根节点：负责把“敌人死亡事件”转换为“掉落物实例化”。
+/// 世界根节点：负责把“敌人死亡事件”转换为“掉落物实例化”，
+/// 并在生成期掷取精英/Boss 强化计划。
 /// </summary>
 public partial class WorldRoot : Node2D
 {
@@ -23,6 +25,7 @@ public partial class WorldRoot : Node2D
 
     private Node? _lootContainer;
     private readonly LootDropper _lootDropper = new();
+    private readonly Random _eliteRandom = new();
     private Area2D? _portalToTown;
     private PlayerController? _player;
     private GameSession? _session;
@@ -36,7 +39,15 @@ public partial class WorldRoot : Node2D
 
         foreach (var enemy in FindDescendantsOfType<BasicEnemyController>(_lootContainer))
         {
-            enemy.Died += OnEnemyDied;
+            var plan = enemy.IsBoss
+                ? EliteRoller.Boss()
+                : EliteRoller.TryRoll(EliteRoller.EliteChance, _eliteRandom);
+            if (plan != null)
+            {
+                enemy.ApplyPlan(plan);
+            }
+
+            enemy.Died += (pos, xpReward) => OnEnemyDied(enemy, pos, xpReward);
         }
     }
 
@@ -69,33 +80,45 @@ public partial class WorldRoot : Node2D
         }
     }
 
-    private void OnEnemyDied(Vector2 pos, int xpReward)
+    private void OnEnemyDied(BasicEnemyController enemy, Vector2 pos, int xpReward)
     {
+        var plan = enemy.Plan;
+
         if (Features.EnableLeveling && _session != null)
         {
             var stats = EquipmentStats.Summarize(_session.Equipment);
-            var xp = (int)(xpReward * stats.XpMultiplier);
-            _session.Leveling.AddXp(xp);
+            _session.Leveling.AddXp((int)(xpReward * stats.XpMultiplier));
         }
+
+        if (plan != null && Features.EnableLoot && _session != null)
+        {
+            _session.Gold += plan.GoldBonus;
+        }
+
+        var dropCount = plan?.DropCount ?? 1;
+        var rarityFloor = plan?.RarityFloor ?? ItemRarity.Common;
 
         // 该信号可能来自物理回调（例如 Area2D.BodyEntered）期间。
         // 在 flushing queries 阶段直接 AddChild/改监测状态会触发引擎报错：
         // "Can't change this state while flushing queries."
         // 因此这里统一延后到空闲帧再生成掉落。
-        CallDeferred(nameof(SpawnLootDeferred), pos);
+        CallDeferred(nameof(SpawnLootDeferred), pos, dropCount, (int)rarityFloor);
     }
 
-    private void SpawnLootDeferred(Vector2 pos)
+    private void SpawnLootDeferred(Vector2 pos, int dropCount, int rarityFloor)
     {
         if (!Features.EnableLoot || LootPickupScene == null || _lootContainer == null)
         {
             return;
         }
 
-        var loot = LootPickupScene.Instantiate<LootPickup>();
-        loot.GlobalPosition = pos;
-        loot.Item = _lootDropper.RollBasicDrop();
-        _lootContainer.AddChild(loot);
+        for (var i = 0; i < dropCount; i++)
+        {
+            var loot = LootPickupScene.Instantiate<LootPickup>();
+            loot.GlobalPosition = pos + new Vector2(i * 10f, 0);
+            loot.Item = _lootDropper.RollDrop((ItemRarity)rarityFloor);
+            _lootContainer.AddChild(loot);
+        }
     }
 
     private static IEnumerable<T> FindDescendantsOfType<T>(Node root)
