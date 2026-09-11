@@ -46,6 +46,16 @@ public sealed class LevelingModel
     public const float BaseStaminaMax = 100f;
 
     /// <summary>
+    /// 生命模型的基准 Max。
+    /// </summary>
+    public const float BaseHealthMax = 100f;
+
+    /// <summary>
+    /// 每级增加的最大生命加成。
+    /// </summary>
+    public const float BonusHealthPerLevel = 5f;
+
+    /// <summary>
     /// 当前等级，从 1 开始，单调递增。
     /// </summary>
     public int Level { get; private set; } = 1;
@@ -86,6 +96,11 @@ public sealed class LevelingModel
     /// </summary>
     public float DesiredStaminaMax =>
         BaseStaminaMax + BonusStaminaPerLevel * (Level - 1) + ExternalStaminaBonus;
+
+    /// <summary>
+    /// 期望最大生命（基准 + 等级加成）。
+    /// </summary>
+    public float DesiredHealthMax => BaseHealthMax + BonusHealthPerLevel * (Level - 1);
 
     /// <summary>
     /// 增加经验；负数与零忽略。经验达到阈值时自动升级并结转溢出。
@@ -129,10 +144,10 @@ public sealed class LevelingModel
     /// （绝对式赋值：基准 + 每级加成×已达等级 + 外部加成）。
     /// <para>
     /// 绝对式赋值天然幂等：读档后（<see cref="Restore"/>）重复结算不会叠加加成。
-    /// 允许传 <c>null</c> 跳过其一。
+    /// 允许传 <c>null</c> 跳过其一；生命模型结算后会 <see cref="HealthModel.ClampToMax"/>。
     /// </para>
     /// </summary>
-    public void ApplyGrowth(StaminaModel? stamina, ManaModel? mana)
+    public void ApplyGrowth(StaminaModel? stamina, ManaModel? mana, HealthModel? health = null)
     {
         var gainedLevels = Level - 1;
 
@@ -145,6 +160,12 @@ public sealed class LevelingModel
         if (mana != null)
         {
             mana.Max = BaseManaMax + BonusManaPerLevel * gainedLevels + ExternalManaBonus;
+        }
+
+        if (health != null)
+        {
+            health.Max = BaseHealthMax + BonusHealthPerLevel * gainedLevels;
+            health.ClampToMax();
         }
 
         AppliedGrowthLevel = Level;

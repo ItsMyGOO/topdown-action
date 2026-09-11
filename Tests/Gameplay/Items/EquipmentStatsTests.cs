@@ -75,4 +75,24 @@ public sealed class EquipmentStatsTests
         Assert.Equal(0f, summary.MaxManaBonus);
         Assert.Equal(8f, summary.MaxStaminaBonus);
     }
+
+    [Fact]
+    public void Summarize_ArmorSumsNonWeaponPowerOnly()
+    {
+        var equipment = new EquipmentModel();
+        equipment.Equip(new ItemInstance("sword", ItemSlot.Weapon, ItemRarity.Rare, 5));
+        equipment.Equip(new ItemInstance("chest", ItemSlot.Armor, ItemRarity.Magic, 3));
+        equipment.Equip(new ItemInstance("helm", ItemSlot.Helmet, ItemRarity.Common, 1));
+        equipment.Equip(new ItemInstance("boots", ItemSlot.Boots, ItemRarity.Rare, 5));
+
+        var summary = EquipmentStats.Summarize(equipment);
+
+        Assert.Equal(9, summary.Armor);
+    }
+
+    [Fact]
+    public void Summarize_WithEmptyEquipment_ArmorIsZero()
+    {
+        Assert.Equal(0, EquipmentStats.Summarize(new EquipmentModel()).Armor);
+    }
 }

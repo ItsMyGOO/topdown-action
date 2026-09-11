@@ -199,4 +199,33 @@ public sealed class LevelingModelTests
         Assert.Equal(117f, leveling.DesiredManaMax);
         Assert.Equal(106f, leveling.DesiredStaminaMax);
     }
+
+    [Fact]
+    public void ApplyGrowth_AppliesHealthGrowthAndClampsCurrent()
+    {
+        var leveling = new LevelingModel();
+        var health = new HealthModel { Max = 200f };
+        health.Heal(999f); // 当前生命撑到 200。
+
+        leveling.AddXp(LevelingModel.BaseXpPerLevel);
+        leveling.ApplyGrowth(null, null, health);
+
+        // 生命上限按等级成长；超出新上限的当前值被钳制。
+        Assert.Equal(105f, health.Max);
+        Assert.Equal(105f, health.Current);
+    }
+
+    [Fact]
+    public void ApplyGrowth_HealthBelowNewMax_KeepsCurrent()
+    {
+        var leveling = new LevelingModel();
+        var health = new HealthModel();
+        health.TakeDamage(50f);
+
+        leveling.AddXp(LevelingModel.BaseXpPerLevel);
+        leveling.ApplyGrowth(null, null, health);
+
+        Assert.Equal(105f, health.Max);
+        Assert.Equal(50f, health.Current);
+    }
 }

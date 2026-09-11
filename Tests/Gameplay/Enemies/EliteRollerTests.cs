@@ -31,6 +31,7 @@ public sealed class EliteRollerTests
 
         Assert.Equal(3f, plan.HpMultiplier);
         Assert.Equal(2f, plan.XpMultiplier);
+        Assert.Equal(2f, plan.DamageMultiplier);
         Assert.Equal(0, plan.GoldBonus);
         Assert.Equal(1, plan.DropCount);
         Assert.Equal(ItemRarity.Common, plan.RarityFloor);
@@ -42,6 +43,7 @@ public sealed class EliteRollerTests
         var plan = RollUntilAffix(EliteAffix.Cunning);
 
         Assert.Equal(2f, plan.XpMultiplier);
+        Assert.Equal(1f, plan.DamageMultiplier);
         Assert.Equal(2, plan.DropCount);
         Assert.Equal(ItemRarity.Magic, plan.RarityFloor);
     }
@@ -71,6 +73,7 @@ public sealed class EliteRollerTests
         Assert.True(plan.IsBoss);
         Assert.Equal(10f, plan.HpMultiplier);
         Assert.Equal(10f, plan.XpMultiplier);
+        Assert.Equal(3f, plan.DamageMultiplier);
         Assert.Equal(50, plan.GoldBonus);
         Assert.Equal(2, plan.DropCount);
         Assert.Equal(ItemRarity.Rare, plan.RarityFloor);
