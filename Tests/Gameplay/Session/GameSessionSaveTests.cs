@@ -1,5 +1,6 @@
 using GodotGameTemplate.Gameplay.Items;
 using GodotGameTemplate.Gameplay.Progression;
+using GodotGameTemplate.Gameplay.Progression.Talents;
 using GodotGameTemplate.Gameplay.Save;
 
 namespace GodotGameTemplate.Tests.Gameplay.Session;
@@ -260,5 +261,49 @@ public sealed class GameSessionSaveTests
         var weapon = equipment.Weapon;
         Assert.NotNull(weapon);
         Assert.Empty(weapon!.Affixes);
+    }
+
+    [Fact]
+    public void SaveDataMapper_TalentRanks_RoundTrip()
+    {
+        var talents = new TalentModel();
+        talents.Allocate(TalentDatabase.Might, 5);
+        talents.Allocate(TalentDatabase.Might, 5);
+        talents.Allocate(TalentDatabase.Meditation, 5);
+        var inventory = new InventoryModel();
+        var equipment = new EquipmentModel();
+        var leveling = new LevelingModel();
+
+        var data = SaveDataMapper.FromState(0, inventory.Items, equipment, leveling, talents);
+        var freshTalents = new TalentModel();
+
+        SaveDataMapper.ApplyToState(
+            data,
+            new InventoryModel(),
+            new EquipmentModel(),
+            null,
+            freshTalents
+        );
+
+        Assert.Equal(2, freshTalents.Ranks[TalentDatabase.Might]);
+        Assert.Equal(1, freshTalents.Ranks[TalentDatabase.Meditation]);
+    }
+
+    [Fact]
+    public void SaveDataMapper_LegacySaveWithoutTalents_YieldsEmptyTalents()
+    {
+        var data = new SaveData();
+        var talents = new TalentModel();
+        talents.Allocate(TalentDatabase.Might, 5);
+
+        SaveDataMapper.ApplyToState(
+            data,
+            new InventoryModel(),
+            new EquipmentModel(),
+            null,
+            talents
+        );
+
+        Assert.Empty(talents.Ranks);
     }
 }

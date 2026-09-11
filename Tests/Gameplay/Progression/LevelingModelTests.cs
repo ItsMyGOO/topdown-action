@@ -228,4 +228,32 @@ public sealed class LevelingModelTests
         Assert.Equal(105f, health.Max);
         Assert.Equal(50f, health.Current);
     }
+
+    [Fact]
+    public void DesiredHealthMax_IncludesExternalBonus()
+    {
+        var leveling = new LevelingModel { ExternalHealthBonus = 20f };
+
+        Assert.Equal(120f, leveling.DesiredHealthMax);
+
+        leveling.AddXp(LevelingModel.BaseXpPerLevel);
+
+        Assert.Equal(125f, leveling.DesiredHealthMax);
+    }
+
+    [Fact]
+    public void ApplyGrowth_Health_UsesExternalBonus_AndStaysIdempotentAcrossReloads()
+    {
+        var leveling = new LevelingModel { ExternalHealthBonus = 15f };
+        var health = new HealthModel();
+
+        leveling.AddXp(LevelingModel.BaseXpPerLevel);
+        leveling.ApplyGrowth(null, null, health);
+        Assert.Equal(120f, health.Max);
+
+        leveling.Restore(2, 0);
+        leveling.ApplyGrowth(null, null, health);
+
+        Assert.Equal(120f, health.Max);
+    }
 }

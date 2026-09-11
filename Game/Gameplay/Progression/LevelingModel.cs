@@ -81,6 +81,11 @@ public sealed class LevelingModel
     public float ExternalStaminaBonus { get; set; }
 
     /// <summary>
+    /// 外部来源的最大生命加成（如天赋）。由结算方在 <see cref="ApplyGrowth"/> 前写入。
+    /// </summary>
+    public float ExternalHealthBonus { get; set; }
+
+    /// <summary>
     /// 升到下一级所需的经验（随等级增长）。
     /// </summary>
     public int XpToNextLevel => BaseXpPerLevel * Level;
@@ -98,9 +103,10 @@ public sealed class LevelingModel
         BaseStaminaMax + BonusStaminaPerLevel * (Level - 1) + ExternalStaminaBonus;
 
     /// <summary>
-    /// 期望最大生命（基准 + 等级加成）。
+    /// 期望最大生命（基准 + 等级加成 + 外部加成）。
     /// </summary>
-    public float DesiredHealthMax => BaseHealthMax + BonusHealthPerLevel * (Level - 1);
+    public float DesiredHealthMax =>
+        BaseHealthMax + BonusHealthPerLevel * (Level - 1) + ExternalHealthBonus;
 
     /// <summary>
     /// 增加经验；负数与零忽略。经验达到阈值时自动升级并结转溢出。
@@ -164,7 +170,7 @@ public sealed class LevelingModel
 
         if (health != null)
         {
-            health.Max = BaseHealthMax + BonusHealthPerLevel * gainedLevels;
+            health.Max = BaseHealthMax + BonusHealthPerLevel * gainedLevels + ExternalHealthBonus;
             health.ClampToMax();
         }
 

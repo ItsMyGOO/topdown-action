@@ -2,8 +2,19 @@ using System.Collections.Generic;
 using System.Linq;
 using GodotGameTemplate.Gameplay.Items;
 using GodotGameTemplate.Gameplay.Progression;
+using GodotGameTemplate.Gameplay.Progression.Talents;
 
 namespace GodotGameTemplate.Gameplay.Save;
+
+/// <summary>
+/// 可序列化的天赋等级 DTO。
+/// </summary>
+public sealed class SaveTalentData
+{
+    public string Id { get; set; } = string.Empty;
+
+    public int Rank { get; set; }
+}
 
 /// <summary>
 /// 会话存档 DTO。
@@ -21,6 +32,11 @@ public sealed class SaveData
     /// 当前等级内已积累经验；旧存档缺省为 0。
     /// </summary>
     public int CurrentXp { get; set; }
+
+    /// <summary>
+    /// 天赋等级；旧存档缺省为空（未加点）。
+    /// </summary>
+    public List<SaveTalentData> Talents { get; set; } = [];
 
     public List<SaveItemInstanceData> InventoryItems { get; set; } = [];
 
@@ -118,7 +134,8 @@ public static class SaveDataMapper
         int gold,
         IEnumerable<ItemInstance> inventoryItems,
         EquipmentModel equipment,
-        LevelingModel? leveling = null
+        LevelingModel? leveling = null,
+        TalentModel? talents = null
     )
     {
         return new SaveData
@@ -126,6 +143,17 @@ public static class SaveDataMapper
             Gold = gold,
             Level = leveling?.Level ?? 1,
             CurrentXp = leveling?.CurrentXp ?? 0,
+            Talents =
+                talents == null
+                    ? []
+                    :
+                    [
+                        .. talents.Ranks.Select(pair => new SaveTalentData
+                        {
+                            Id = pair.Key,
+                            Rank = pair.Value,
+                        }),
+                    ],
             InventoryItems = [.. inventoryItems.Select(SaveItemInstanceData.FromItemInstance)],
             EquipmentSlots = SaveEquipmentSlotsFrom(equipment),
         };
@@ -157,7 +185,8 @@ public static class SaveDataMapper
         SaveData data,
         InventoryModel inventory,
         EquipmentModel equipment,
-        LevelingModel? leveling = null
+        LevelingModel? leveling = null,
+        TalentModel? talents = null
     )
     {
         inventory.ReplaceItems(data.InventoryItems.Select(item => item.ToItemInstance()));
@@ -180,6 +209,11 @@ public static class SaveDataMapper
                 data.Level > 0 ? data.Level : 1,
                 data.CurrentXp > 0 ? data.CurrentXp : 0
             );
+        }
+
+        if (talents != null)
+        {
+            talents.Restore(data.Talents.Select(talent => (talent.Id, talent.Rank)));
         }
 
         return data.Gold;
