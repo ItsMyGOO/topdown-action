@@ -16,6 +16,12 @@ public partial class PlayerAttackHitbox : Area2D, IPlayerAttackHitbox
     [Export]
     public string AttackId { get; set; } = "player_basic_slash";
 
+    /// <summary>
+    /// 每次命中的原始伤害（由玩家控制器按武器 Power 注入）。
+    /// </summary>
+    [Export]
+    public int Damage { get; set; } = 1;
+
     private Vector2 _facing = Vector2.Down;
     private readonly HashSet<Node> _hitTargets = [];
 
@@ -76,7 +82,7 @@ public partial class PlayerAttackHitbox : Area2D, IPlayerAttackHitbox
             return;
         }
 
-        receiver.ReceiveHit(new HitContext(SourceNode, _facing, AttackId));
+        receiver.ReceiveHit(new HitContext(SourceNode, _facing, AttackId, Damage));
     }
 
     private static bool TryResolveReceiver(

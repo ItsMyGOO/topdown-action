@@ -18,6 +18,11 @@ public sealed class ActorContext
     public StaminaModel Stamina { get; } = new();
 
     /// <summary>
+    /// 生命模型（纯逻辑），归零即死亡。
+    /// </summary>
+    public HealthModel Health { get; } = new();
+
+    /// <summary>
     /// 法力模型（纯逻辑），用于技能消耗。
     /// </summary>
     public ManaModel Mana { get; private set; } = new();

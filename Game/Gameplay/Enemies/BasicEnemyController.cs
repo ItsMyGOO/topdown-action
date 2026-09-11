@@ -1,7 +1,9 @@
 using Godot;
 using GodotGameTemplate.Gameplay.Actors.Combat;
+using GodotGameTemplate.Gameplay.Combat;
 using GodotGameTemplate.Gameplay.Combat.Targeting;
 using GodotGameTemplate.Gameplay.Items;
+using GodotGameTemplate.Gameplay.Player;
 
 namespace GodotGameTemplate.Gameplay.Enemies;
 
@@ -25,6 +27,18 @@ public partial class BasicEnemyController : CharacterBody2D, IHitReceiver, ITarg
     public bool IsBoss { get; set; }
 
     /// <summary>
+    /// 触碰玩家的伤害（受玩家护甲减免）。
+    /// </summary>
+    [Export]
+    public int Damage { get; set; } = 8;
+
+    /// <summary>
+    /// 减免玩家造成的固定伤害（抗性，保底 1 点）。
+    /// </summary>
+    [Export]
+    public int ResistFlat { get; set; } = 0;
+
+    /// <summary>
     /// 已应用的精英/Boss 强化计划（普通怪为 null）。
     /// </summary>
     public ElitePlan? Plan { get; private set; }
@@ -42,6 +56,10 @@ public partial class BasicEnemyController : CharacterBody2D, IHitReceiver, ITarg
     public float HitFlashDuration { get; set; } = 0.08f;
 
     private double _hitFlashRemaining;
+    private double _touchCooldownRemaining;
+
+    private const float TouchRange = 26f;
+    private const double TouchCooldownSeconds = 0.8d;
 
     /// <summary>
     /// 当前生命值。
@@ -79,6 +97,26 @@ public partial class BasicEnemyController : CharacterBody2D, IHitReceiver, ITarg
         }
     }
 
+    public override void _PhysicsProcess(double delta)
+    {
+        _touchCooldownRemaining = Mathf.Max(0d, _touchCooldownRemaining - delta);
+        if (_touchCooldownRemaining > 0d)
+        {
+            return;
+        }
+
+        if (GetTree().GetFirstNodeInGroup("player") is not PlayerController player)
+        {
+            return;
+        }
+
+        if (GlobalPosition.DistanceTo(player.GlobalPosition) <= TouchRange)
+        {
+            player.TakeDamage(Damage);
+            _touchCooldownRemaining = TouchCooldownSeconds;
+        }
+    }
+
     /// <summary>
     /// 应用精英/Boss 强化计划：倍率写进属性，词缀与 Boss 做表现区分。
     /// 必须在 <see cref="_Ready"/> 之后调用（世界根生成期）。
@@ -90,6 +128,7 @@ public partial class BasicEnemyController : CharacterBody2D, IHitReceiver, ITarg
         MaxHp = Mathf.Max(1, Mathf.RoundToInt(MaxHp * plan.HpMultiplier));
         Hp = MaxHp;
         XpReward = Mathf.Max(1, Mathf.RoundToInt(XpReward * plan.XpMultiplier));
+        Damage = Mathf.Max(1, Mathf.RoundToInt(Damage * plan.DamageMultiplier));
 
         if (Body == null)
         {
@@ -106,7 +145,8 @@ public partial class BasicEnemyController : CharacterBody2D, IHitReceiver, ITarg
 
     public void ReceiveHit(HitContext hit)
     {
-        Hp = Mathf.Max(0, Hp - 1);
+        var effective = DamageMath.Apply(hit.Damage, ResistFlat);
+        Hp = Mathf.Max(0, Hp - effective);
         _hitFlashRemaining = HitFlashDuration;
 
         if (Body != null)

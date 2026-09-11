@@ -18,6 +18,9 @@ offset_bottom = -8.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
 
+[node name="LifeLabel" type="Label" parent="Margin/VBox"]
+text = "生命: --/--"
+
 [node name="StaminaLabel" type="Label" parent="Margin/VBox"]
 text = "体力: --/--"
 

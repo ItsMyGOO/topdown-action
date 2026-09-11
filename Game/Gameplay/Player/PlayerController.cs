@@ -23,6 +23,7 @@ namespace GodotGameTemplate.Gameplay.Player;
 public partial class PlayerController : CharacterBody2D
 {
     private const float EvadeStaminaCost = 25f;
+    private const string TownScenePath = "res://Game/Scenes/Town/Town.tscn";
     private const string AoeIndicatorScenePath = "res://Game/Scenes/Skills/AoeIndicator.tscn";
     private const string ProjectileEffectScenePath =
         "res://Game/Scenes/Skills/ProjectileSkillEffect.tscn";
@@ -70,9 +71,20 @@ public partial class PlayerController : CharacterBody2D
 
     private string _skillToastMessage = string.Empty;
     private double _skillToastRemainingSeconds;
+    private bool _respawnQueued;
 
     public string SkillToastMessage =>
         _skillToastRemainingSeconds > 0d ? _skillToastMessage : string.Empty;
+
+    /// <summary>
+    /// 当前攻击伤害（武器 Power；未持武器为 1）。
+    /// </summary>
+    public int AttackDamage => Equipment.Weapon?.Power ?? 1;
+
+    /// <summary>
+    /// 当前护甲（非武器已装备槽 Power 之和），减免受到的伤害。
+    /// </summary>
+    public int Armor => EquipmentStats.Summarize(Equipment).Armor;
 
     /// <summary>
     /// 等级/经验模型（来自会话）；功能关闭时为 <c>null</c>（供 HUD 判断显隐）。
@@ -136,6 +148,7 @@ public partial class PlayerController : CharacterBody2D
 
         AttackHitbox.SourceNode = this;
         AttackHitbox.AttackId = AttackConfig.AttackId;
+        AttackHitbox.Damage = AttackDamage;
 
         _stateMachine = new StateMachine<ActorContext>(_context);
         _attackState = new PlayerAttackState(AttackConfig, AttackHitbox);
@@ -229,9 +242,11 @@ public partial class PlayerController : CharacterBody2D
         if (AttackHitbox != null)
         {
             AttackHitbox.AttackId = AttackConfig!.AttackId;
+            AttackHitbox.Damage = AttackDamage;
         }
 
         _context.Stamina.Tick((float)delta);
+        _context.Health.Tick((float)delta);
         if (Features.EnableSkills)
         {
             _context.Mana.Tick((float)delta);
@@ -406,19 +421,44 @@ public partial class PlayerController : CharacterBody2D
 
         var manaInSync = Mathf.IsEqualApprox(_context.Mana.Max, leveling.DesiredManaMax);
         var staminaInSync = Mathf.IsEqualApprox(_context.Stamina.Max, leveling.DesiredStaminaMax);
-        if (manaInSync && staminaInSync)
+        var healthInSync = Mathf.IsEqualApprox(_context.Health.Max, leveling.DesiredHealthMax);
+        if (manaInSync && staminaInSync && healthInSync)
         {
             return;
         }
 
         var previousLevel = leveling.AppliedGrowthLevel;
-        leveling.ApplyGrowth(_context.Stamina, _context.Mana);
+        leveling.ApplyGrowth(_context.Stamina, _context.Mana, _context.Health);
 
         if (leveling.AppliedGrowthLevel > previousLevel)
         {
             _skillToastMessage = $"升级! Lv.{leveling.Level}";
             _skillToastRemainingSeconds = 2.0d;
         }
+    }
+
+    /// <summary>
+    /// 受到一次伤害：按护甲减免后扣血；归零则延后回城镇满血复活（无惩罚）。
+    /// </summary>
+    public void TakeDamage(int rawDamage)
+    {
+        if (_respawnQueued)
+        {
+            return;
+        }
+
+        _context.Health.TakeDamage(DamageMath.Apply(rawDamage, Armor));
+
+        if (_context.Health.IsEmpty)
+        {
+            _respawnQueued = true;
+            CallDeferred(nameof(RespawnInTown));
+        }
+    }
+
+    private void RespawnInTown()
+    {
+        GetTree().ChangeSceneToFile(TownScenePath);
     }
 
     private void StartInstantCast(SkillSlot slot)
