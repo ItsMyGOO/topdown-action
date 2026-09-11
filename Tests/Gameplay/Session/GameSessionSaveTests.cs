@@ -190,4 +190,75 @@ public sealed class GameSessionSaveTests
         Assert.Equal(1, leveling.Level);
         Assert.Equal(0, leveling.CurrentXp);
     }
+
+    [Fact]
+    public void SaveDataMapper_AffixesAndExpandedSlots_RoundTrip()
+    {
+        var inventory = new InventoryModel();
+        var equipment = new EquipmentModel();
+        var leveling = new LevelingModel();
+        leveling.AddXp(LevelingModel.BaseXpPerLevel);
+
+        var helmet = new ItemInstance(
+            "helmet_01",
+            ItemSlot.Helmet,
+            ItemRarity.Rare,
+            4,
+            [
+                new AffixLine(AffixStat.BonusMaxMana, 12f),
+                new AffixLine(AffixStat.BonusXpPercent, 15f),
+            ]
+        );
+        equipment.Equip(helmet);
+        equipment.Equip(
+            new ItemInstance(
+                "boots_01",
+                ItemSlot.Boots,
+                ItemRarity.Magic,
+                3,
+                [new AffixLine(AffixStat.BonusMaxStamina, 9f)]
+            )
+        );
+
+        var data = SaveDataMapper.FromState(10, inventory.Items, equipment, leveling);
+        var freshEquipment = new EquipmentModel();
+        var freshInventory = new InventoryModel();
+        var freshLeveling = new LevelingModel();
+
+        SaveDataMapper.ApplyToState(data, freshInventory, freshEquipment, freshLeveling);
+
+        Assert.Equal(helmet, freshEquipment.Get(ItemSlot.Helmet));
+        Assert.Equal(
+            new ItemInstance(
+                "boots_01",
+                ItemSlot.Boots,
+                ItemRarity.Magic,
+                3,
+                [new AffixLine(AffixStat.BonusMaxStamina, 9f)]
+            ),
+            freshEquipment.Get(ItemSlot.Boots)
+        );
+        Assert.Equal(2, freshLeveling.Level);
+    }
+
+    [Fact]
+    public void SaveDataMapper_LegacySaveWithoutAffixes_YieldsAffixFreeItems()
+    {
+        var data = new SaveData();
+        data.EquipmentSlots.Weapon = new SaveItemInstanceData
+        {
+            Id = "legacy_sword",
+            Slot = ItemSlot.Weapon,
+            Rarity = ItemRarity.Magic,
+            Power = 8,
+        };
+        var inventory = new InventoryModel();
+        var equipment = new EquipmentModel();
+
+        SaveDataMapper.ApplyToState(data, inventory, equipment);
+
+        var weapon = equipment.Weapon;
+        Assert.NotNull(weapon);
+        Assert.Empty(weapon!.Affixes);
+    }
 }

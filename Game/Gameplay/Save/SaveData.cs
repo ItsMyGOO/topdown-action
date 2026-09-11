@@ -28,6 +28,26 @@ public sealed class SaveData
 }
 
 /// <summary>
+/// 可序列化的词缀行 DTO。
+/// </summary>
+public sealed class SaveAffixLineData
+{
+    public AffixStat Stat { get; set; }
+
+    public float Value { get; set; }
+
+    public static SaveAffixLineData FromAffixLine(AffixLine affix)
+    {
+        return new SaveAffixLineData { Stat = affix.Stat, Value = affix.Value };
+    }
+
+    public AffixLine ToAffixLine()
+    {
+        return new AffixLine(Stat, Value);
+    }
+}
+
+/// <summary>
 /// 可序列化的物品实例 DTO，保存完整运行时实例字段。
 /// </summary>
 public sealed class SaveItemInstanceData
@@ -40,6 +60,11 @@ public sealed class SaveItemInstanceData
 
     public int Power { get; set; }
 
+    /// <summary>
+    /// 词缀行；旧存档缺省为 null，加载后视为无词条。
+    /// </summary>
+    public List<SaveAffixLineData>? Affixes { get; set; }
+
     public static SaveItemInstanceData FromItemInstance(ItemInstance item)
     {
         return new SaveItemInstanceData
@@ -48,17 +73,22 @@ public sealed class SaveItemInstanceData
             Slot = item.Slot,
             Rarity = item.Rarity,
             Power = item.Power,
+            Affixes =
+                item.Affixes.Length == 0
+                    ? null
+                    : [.. item.Affixes.Select(SaveAffixLineData.FromAffixLine)],
         };
     }
 
     public ItemInstance ToItemInstance()
     {
-        return new ItemInstance(Id, Slot, Rarity, Power);
+        var affixes = Affixes?.Select(line => line.ToAffixLine()).ToArray();
+        return new ItemInstance(Id, Slot, Rarity, Power, affixes);
     }
 }
 
 /// <summary>
-/// 装备槽位 DTO。
+/// 装备槽位 DTO（八槽；旧存档缺省字段为 null → 未穿戴）。
 /// </summary>
 public sealed class SaveEquipmentSlotsData
 {
@@ -67,6 +97,16 @@ public sealed class SaveEquipmentSlotsData
     public SaveItemInstanceData? Armor { get; set; }
 
     public SaveItemInstanceData? Accessory { get; set; }
+
+    public SaveItemInstanceData? Helmet { get; set; }
+
+    public SaveItemInstanceData? Gloves { get; set; }
+
+    public SaveItemInstanceData? Legs { get; set; }
+
+    public SaveItemInstanceData? Boots { get; set; }
+
+    public SaveItemInstanceData? Ring { get; set; }
 }
 
 /// <summary>
@@ -87,21 +127,29 @@ public static class SaveDataMapper
             Level = leveling?.Level ?? 1,
             CurrentXp = leveling?.CurrentXp ?? 0,
             InventoryItems = [.. inventoryItems.Select(SaveItemInstanceData.FromItemInstance)],
-            EquipmentSlots = new SaveEquipmentSlotsData
-            {
-                Weapon =
-                    equipment.Weapon == null
-                        ? null
-                        : SaveItemInstanceData.FromItemInstance(equipment.Weapon),
-                Armor =
-                    equipment.Armor == null
-                        ? null
-                        : SaveItemInstanceData.FromItemInstance(equipment.Armor),
-                Accessory =
-                    equipment.Accessory == null
-                        ? null
-                        : SaveItemInstanceData.FromItemInstance(equipment.Accessory),
-            },
+            EquipmentSlots = SaveEquipmentSlotsFrom(equipment),
+        };
+    }
+
+    private static SaveEquipmentSlotsData SaveEquipmentSlotsFrom(EquipmentModel equipment)
+    {
+        SaveItemInstanceData? Get(ItemSlot slot)
+        {
+            var item = equipment.Get(slot);
+
+            return item == null ? null : SaveItemInstanceData.FromItemInstance(item);
+        }
+
+        return new SaveEquipmentSlotsData
+        {
+            Weapon = Get(ItemSlot.Weapon),
+            Armor = Get(ItemSlot.Armor),
+            Accessory = Get(ItemSlot.Accessory),
+            Helmet = Get(ItemSlot.Helmet),
+            Gloves = Get(ItemSlot.Gloves),
+            Legs = Get(ItemSlot.Legs),
+            Boots = Get(ItemSlot.Boots),
+            Ring = Get(ItemSlot.Ring),
         };
     }
 
@@ -113,10 +161,17 @@ public static class SaveDataMapper
     )
     {
         inventory.ReplaceItems(data.InventoryItems.Select(item => item.ToItemInstance()));
+
+        var slots = data.EquipmentSlots;
         equipment.SetEquipment(
-            data.EquipmentSlots.Weapon?.ToItemInstance(),
-            data.EquipmentSlots.Armor?.ToItemInstance(),
-            data.EquipmentSlots.Accessory?.ToItemInstance()
+            slots.Weapon?.ToItemInstance(),
+            slots.Armor?.ToItemInstance(),
+            slots.Accessory?.ToItemInstance(),
+            slots.Helmet?.ToItemInstance(),
+            slots.Gloves?.ToItemInstance(),
+            slots.Legs?.ToItemInstance(),
+            slots.Boots?.ToItemInstance(),
+            slots.Ring?.ToItemInstance()
         );
 
         if (leveling != null)
