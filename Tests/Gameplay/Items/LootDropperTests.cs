@@ -67,4 +67,41 @@ public sealed class LootDropperTests
             Assert.Equal(expected, drop.Power);
         }
     }
+
+    [Fact]
+    public void RollDrop_RareFloor_AlwaysRareWithTwoAffixes()
+    {
+        var dropper = new LootDropper(11);
+
+        for (var i = 0; i < 50; i++)
+        {
+            var drop = dropper.RollDrop(ItemRarity.Rare);
+
+            Assert.Equal(ItemRarity.Rare, drop.Rarity);
+            Assert.Equal(2, drop.Affixes.Length);
+        }
+    }
+
+    [Fact]
+    public void RollDrop_MagicFloor_NeverBelowMagic()
+    {
+        var dropper = new LootDropper(23);
+
+        for (var i = 0; i < 50; i++)
+        {
+            Assert.NotEqual(ItemRarity.Common, dropper.RollDrop(ItemRarity.Magic).Rarity);
+        }
+    }
+
+    [Fact]
+    public void RollBasicDrop_EqualsRollDropWithCommonFloor()
+    {
+        var a = new LootDropper(31);
+        var b = new LootDropper(31);
+
+        for (var i = 0; i < 20; i++)
+        {
+            Assert.Equal(a.RollBasicDrop(), b.RollDrop(ItemRarity.Common));
+        }
+    }
 }

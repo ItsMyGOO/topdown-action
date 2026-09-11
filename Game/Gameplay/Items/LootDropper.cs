@@ -17,12 +17,25 @@ public sealed class LootDropper
 
     public ItemInstance RollBasicDrop()
     {
+        return RollDrop(ItemRarity.Common);
+    }
+
+    /// <summary>
+    /// 掷一次掉落；稀有度抽取带下限钳制（词缀预算跟随最终稀有度）。
+    /// </summary>
+    public ItemInstance RollDrop(ItemRarity rarityFloor)
+    {
         var rarity = _random.NextDouble() switch
         {
             < 0.70 => ItemRarity.Common,
             < 0.95 => ItemRarity.Magic,
             _ => ItemRarity.Rare,
         };
+
+        if (rarity < rarityFloor)
+        {
+            rarity = rarityFloor;
+        }
 
         var power = rarity switch
         {
