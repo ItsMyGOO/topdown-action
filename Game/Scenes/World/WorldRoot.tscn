@@ -19,6 +19,36 @@ position = Vector2(160, 90)
 [node name="Enemy" parent="YSort" instance=ExtResource("2_f6v4d")]
 position = Vector2(240, 100)
 
+[node name="Enemy2" parent="YSort" instance=ExtResource("2_f6v4d")]
+position = Vector2(300, 80)
+
+[node name="Enemy3" parent="YSort" instance=ExtResource("2_f6v4d")]
+position = Vector2(320, 140)
+
+[node name="Enemy4" parent="YSort" instance=ExtResource("2_f6v4d")]
+position = Vector2(380, 100)
+
+[node name="Enemy5" parent="YSort" instance=ExtResource("2_f6v4d")]
+position = Vector2(420, 160)
+
+[node name="Enemy6" parent="YSort" instance=ExtResource("2_f6v4d")]
+position = Vector2(260, 180)
+
+[node name="Enemy7" parent="YSort" instance=ExtResource("2_f6v4d")]
+position = Vector2(340, 200)
+
+[node name="Enemy8" parent="YSort" instance=ExtResource("2_f6v4d")]
+position = Vector2(400, 60)
+
+[node name="Enemy9" parent="YSort" instance=ExtResource("2_f6v4d")]
+position = Vector2(200, 220)
+
+[node name="Enemy10" parent="YSort" instance=ExtResource("2_f6v4d")]
+position = Vector2(300, 240)
+
+[node name="Enemy11" parent="YSort" instance=ExtResource("2_f6v4d")]
+position = Vector2(380, 220)
+
 [node name="PortalToTown" type="Area2D" parent="YSort" groups=["portal_to_town"]]
 position = Vector2(80, 100)
 monitoring = true
