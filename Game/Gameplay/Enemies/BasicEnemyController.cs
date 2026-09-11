@@ -39,6 +39,27 @@ public partial class BasicEnemyController : CharacterBody2D, IHitReceiver, ITarg
     public int ResistFlat { get; set; } = 0;
 
     /// <summary>
+    /// 移动速度（像素/秒）。
+    /// </summary>
+    [Export]
+    public float Speed { get; set; } = 60f;
+
+    /// <summary>
+    /// 进入追击的警戒半径。
+    /// </summary>
+    [Export]
+    public float AggroRange { get; set; } = 140f;
+
+    /// <summary>
+    /// 距出生点超过此距离强制脱战回家。
+    /// </summary>
+    [Export]
+    public float LeashRange { get; set; } = 260f;
+
+    private readonly EnemyAiOrchestrator _ai = new();
+    private Vector2 _homePosition;
+
+    /// <summary>
     /// 已应用的精英/Boss 强化计划（普通怪为 null）。
     /// </summary>
     public ElitePlan? Plan { get; private set; }
@@ -74,6 +95,7 @@ public partial class BasicEnemyController : CharacterBody2D, IHitReceiver, ITarg
     public override void _Ready()
     {
         Hp = MaxHp;
+        _homePosition = GlobalPosition;
         Body ??= GetNodeOrNull<Polygon2D>("Body");
         AddToGroup("targetable");
 
@@ -100,21 +122,51 @@ public partial class BasicEnemyController : CharacterBody2D, IHitReceiver, ITarg
     public override void _PhysicsProcess(double delta)
     {
         _touchCooldownRemaining = Mathf.Max(0d, _touchCooldownRemaining - delta);
-        if (_touchCooldownRemaining > 0d)
-        {
-            return;
-        }
 
         if (GetTree().GetFirstNodeInGroup("player") is not PlayerController player)
         {
             return;
         }
 
-        if (GlobalPosition.DistanceTo(player.GlobalPosition) <= TouchRange)
+        if (
+            _touchCooldownRemaining <= 0d
+            && GlobalPosition.DistanceTo(player.GlobalPosition) <= TouchRange
+        )
         {
             player.TakeDamage(Damage);
             _touchCooldownRemaining = TouchCooldownSeconds;
         }
+
+        RunAi(player);
+    }
+
+    private void RunAi(PlayerController player)
+    {
+        var decision = _ai.Evaluate(
+            new EnemyAiSnapshot(
+                GlobalPosition,
+                _homePosition,
+                player.GlobalPosition,
+                AggroRange,
+                AggroRange * 1.25f,
+                LeashRange,
+                !player.ActorContext.Health.IsEmpty
+            )
+        );
+
+        if (decision.State == EnemyAiState.Idle)
+        {
+            Velocity = Vector2.Zero;
+            if (decision.ReachedHome)
+            {
+                Hp = MaxHp;
+            }
+
+            return;
+        }
+
+        Velocity = decision.Direction * Speed;
+        MoveAndSlide();
     }
 
     /// <summary>
@@ -129,6 +181,7 @@ public partial class BasicEnemyController : CharacterBody2D, IHitReceiver, ITarg
         Hp = MaxHp;
         XpReward = Mathf.Max(1, Mathf.RoundToInt(XpReward * plan.XpMultiplier));
         Damage = Mathf.Max(1, Mathf.RoundToInt(Damage * plan.DamageMultiplier));
+        Speed = Mathf.Max(0f, Speed * plan.SpeedMultiplier);
 
         if (Body == null)
         {
