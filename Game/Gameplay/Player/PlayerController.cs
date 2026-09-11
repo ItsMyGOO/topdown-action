@@ -388,13 +388,25 @@ public partial class PlayerController : CharacterBody2D
     }
 
     /// <summary>
-    /// 结算尚未应用的等级加成（含读档后需要补发的部分），
-    /// 并在升级时给出提示。模型内部记账保证不会重复发放。
+    /// 结算等级加成与装备词条加成（含读档后需要补发的部分），
+    /// 在「实际资源上限 ≠ 期望值」时重新应用，并在升级时给出提示。
+    /// ApplyGrowth 为绝对式赋值，重复结算不会叠加。
     /// </summary>
     private void ReconcileLevelGrowth()
     {
         var leveling = _session.Leveling;
-        if (!Features.EnableLeveling || leveling.AppliedGrowthLevel == leveling.Level)
+        if (!Features.EnableLeveling)
+        {
+            return;
+        }
+
+        var stats = EquipmentStats.Summarize(_session.Equipment);
+        leveling.ExternalManaBonus = stats.MaxManaBonus;
+        leveling.ExternalStaminaBonus = stats.MaxStaminaBonus;
+
+        var manaInSync = Mathf.IsEqualApprox(_context.Mana.Max, leveling.DesiredManaMax);
+        var staminaInSync = Mathf.IsEqualApprox(_context.Stamina.Max, leveling.DesiredStaminaMax);
+        if (manaInSync && staminaInSync)
         {
             return;
         }

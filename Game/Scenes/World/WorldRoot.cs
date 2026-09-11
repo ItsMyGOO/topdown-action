@@ -73,7 +73,9 @@ public partial class WorldRoot : Node2D
     {
         if (Features.EnableLeveling && _session != null)
         {
-            _session.Leveling.AddXp(xpReward);
+            var stats = EquipmentStats.Summarize(_session.Equipment);
+            var xp = (int)(xpReward * stats.XpMultiplier);
+            _session.Leveling.AddXp(xp);
         }
 
         // 该信号可能来自物理回调（例如 Area2D.BodyEntered）期间。

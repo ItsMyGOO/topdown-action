@@ -185,4 +185,18 @@ public sealed class LevelingModelTests
 
         Assert.Equal(112f, mana.Max);
     }
+
+    [Fact]
+    public void DesiredMax_CombinesBaseLevelAndExternalBonuses()
+    {
+        var leveling = new LevelingModel { ExternalManaBonus = 15f, ExternalStaminaBonus = 4f };
+
+        Assert.Equal(115f, leveling.DesiredManaMax);
+        Assert.Equal(104f, leveling.DesiredStaminaMax);
+
+        leveling.AddXp(LevelingModel.BaseXpPerLevel);
+
+        Assert.Equal(117f, leveling.DesiredManaMax);
+        Assert.Equal(106f, leveling.DesiredStaminaMax);
+    }
 }

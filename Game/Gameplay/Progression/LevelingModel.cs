@@ -76,6 +76,18 @@ public sealed class LevelingModel
     public int XpToNextLevel => BaseXpPerLevel * Level;
 
     /// <summary>
+    /// 期望最大法力（基准 + 等级加成 + 外部加成），供结算方判断是否需要重新应用。
+    /// </summary>
+    public float DesiredManaMax =>
+        BaseManaMax + BonusManaPerLevel * (Level - 1) + ExternalManaBonus;
+
+    /// <summary>
+    /// 期望最大体力（基准 + 等级加成 + 外部加成）。
+    /// </summary>
+    public float DesiredStaminaMax =>
+        BaseStaminaMax + BonusStaminaPerLevel * (Level - 1) + ExternalStaminaBonus;
+
+    /// <summary>
     /// 增加经验；负数与零忽略。经验达到阈值时自动升级并结转溢出。
     /// </summary>
     public LevelUpResult AddXp(int amount)

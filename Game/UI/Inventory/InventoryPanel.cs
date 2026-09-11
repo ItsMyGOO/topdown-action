@@ -46,7 +46,13 @@ public partial class InventoryPanel : PanelContainer
 
             var row = new HBoxContainer();
 
-            var label = new Label { Text = $"{captured.Id}  [{captured.Slot}]  P{captured.Power}" };
+            var text = $"{captured.Id}  [{captured.Slot}]  P{captured.Power}";
+            if (captured.Affixes.Length > 0)
+            {
+                text += $"\n{AffixText.FormatAll(captured.Affixes)}";
+            }
+
+            var label = new Label { Text = text };
             label.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
             row.AddChild(label);
 
