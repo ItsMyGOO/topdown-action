@@ -474,15 +474,17 @@ public sealed class GameSessionSaveTests
         var inventory = new InventoryModel();
         var equipment = new EquipmentModel();
 
-        var data = SaveDataMapper.FromState(
-            0,
-            inventory.Items,
-            equipment,
-            stashItems: stash.Items
-        );
+        var data = SaveDataMapper.FromState(0, inventory.Items, equipment, stashItems: stash.Items);
         var freshStash = new InventoryModel();
 
-        SaveDataMapper.ApplyToState(data, new InventoryModel(), new EquipmentModel(), out _, stash: freshStash);
+        SaveDataMapper.ApplyToState(
+            data,
+            new InventoryModel(),
+            new EquipmentModel(),
+            out _,
+            out _,
+            stash: freshStash
+        );
 
         Assert.Equal(
             new ItemInstance(
@@ -503,7 +505,14 @@ public sealed class GameSessionSaveTests
         var stash = new InventoryModel();
         stash.TryAdd(new ItemInstance("old", ItemSlot.Weapon, ItemRarity.Common, 1));
 
-        SaveDataMapper.ApplyToState(data, new InventoryModel(), new EquipmentModel(), out _, stash: stash);
+        SaveDataMapper.ApplyToState(
+            data,
+            new InventoryModel(),
+            new EquipmentModel(),
+            out _,
+            out _,
+            stash: stash
+        );
 
         Assert.Empty(stash.Items);
     }

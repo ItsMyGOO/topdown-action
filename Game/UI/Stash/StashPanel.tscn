@@ -1,0 +1,36 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://Game/UI/Stash/StashPanel.cs" id="1_stash"]
+
+[node name="StashPanel" type="PanelContainer"]
+custom_minimum_size = Vector2(520, 0)
+script = ExtResource("1_stash")
+
+[node name="Margin" type="MarginContainer" parent="."]
+margin_left = 8.0
+margin_top = 8.0
+margin_right = -8.0
+margin_bottom = -8.0
+
+[node name="VBox" type="VBoxContainer" parent="Margin"]
+
+[node name="TitleLabel" type="Label" parent="Margin/VBox"]
+text = "仓库（靠近箱子按 E 开关）"
+
+[node name="Columns" type="HBoxContainer" parent="Margin/VBox"]
+
+[node name="InventorySide" type="VBoxContainer" parent="Margin/VBox/Columns"]
+size_flags_horizontal = 3
+
+[node name="InventoryHeader" type="Label" parent="Margin/VBox/Columns/InventorySide"]
+text = "背包"
+
+[node name="InventoryList" type="VBoxContainer" parent="Margin/VBox/Columns/InventorySide"]
+
+[node name="StashSide" type="VBoxContainer" parent="Margin/VBox/Columns"]
+size_flags_horizontal = 3
+
+[node name="StashHeader" type="Label" parent="Margin/VBox/Columns/StashSide"]
+text = "仓库 0/40"
+
+[node name="StashList" type="VBoxContainer" parent="Margin/VBox/Columns/StashSide"]

@@ -29,6 +29,11 @@ public partial class GameSession : Node
 
     public PotionChargesModel Potions { get; } = new();
 
+    /// <summary>
+    /// 城镇仓库（比背包更大的存储，跨场景持久）。
+    /// </summary>
+    public InventoryModel Stash { get; } = new() { Capacity = 40 };
+
     public string ClassId { get; set; } = ClassDatabase.DefaultClassId;
 
     public int WorldTier { get; set; } = 1;
@@ -70,7 +75,8 @@ public partial class GameSession : Node
             Talents,
             Potions,
             ClassId,
-            WorldTier
+            WorldTier,
+            Stash.Items
         );
     }
 
@@ -84,7 +90,8 @@ public partial class GameSession : Node
             out var worldTier,
             Leveling,
             Talents,
-            Potions
+            Potions,
+            Stash
         );
         ClassId = classId;
         WorldTier = worldTier;

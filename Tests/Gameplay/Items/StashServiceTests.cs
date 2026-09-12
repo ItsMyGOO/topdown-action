@@ -4,8 +4,12 @@ namespace GodotGameTemplate.Tests.Gameplay.Items;
 
 public sealed class StashServiceTests
 {
-    private static readonly ItemInstance Sword =
-        new("weapon_01", ItemSlot.Weapon, ItemRarity.Rare, 5);
+    private static readonly ItemInstance Sword = new(
+        "weapon_01",
+        ItemSlot.Weapon,
+        ItemRarity.Rare,
+        5
+    );
 
     [Fact]
     public void Deposit_MovesItemFromInventoryToStash()

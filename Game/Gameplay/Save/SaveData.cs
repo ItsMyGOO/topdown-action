@@ -172,9 +172,10 @@ public static class SaveDataMapper
             Potions = potions?.Available ?? 0,
             ClassId = classId ?? string.Empty,
             WorldTier = WorldTierDatabase.Get(worldTier).Tier,
-            StashItems = stashItems == null
-                ? []
-                : [.. stashItems.Select(SaveItemInstanceData.FromItemInstance)],
+            StashItems =
+                stashItems == null
+                    ? []
+                    : [.. stashItems.Select(SaveItemInstanceData.FromItemInstance)],
             Talents =
                 talents == null
                     ? []

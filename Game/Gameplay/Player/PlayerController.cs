@@ -122,6 +122,16 @@ public partial class PlayerController : CharacterBody2D
     /// </summary>
     public int SessionWorldTier => _session.WorldTier;
 
+    /// <summary>
+    /// 城镇仓库（来自会话，供仓库面板读写）。
+    /// </summary>
+    public InventoryModel Stash => _session.Stash;
+
+    /// <summary>
+    /// 立即写存档（仓库等操作后调用）。
+    /// </summary>
+    public void SaveProgress() => _session.Save();
+
     public GameFeatures Features { get; set; } = new();
 
     public InventoryModel Inventory => _session.Inventory;

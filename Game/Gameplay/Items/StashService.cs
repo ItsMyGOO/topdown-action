@@ -27,7 +27,11 @@ public static class StashService
     /// <summary>
     /// 从仓库取出到背包。
     /// </summary>
-    public static bool TryWithdraw(InventoryModel stash, InventoryModel inventory, ItemInstance item)
+    public static bool TryWithdraw(
+        InventoryModel stash,
+        InventoryModel inventory,
+        ItemInstance item
+    )
     {
         if (!stash.Items.Contains(item) || inventory.Items.Count >= inventory.Capacity)
         {

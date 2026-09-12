@@ -22,6 +22,8 @@ public partial class TownController : Node2D
     private Area2D? _classShrine;
     private Area2D? _tierShrine;
     private Area2D? _portalToDungeon;
+    private Area2D? _stashBox;
+    private GodotGameTemplate.Game.UI.Stash.StashPanel? _stashPanel;
     private Area2D? _portalToWorld;
     private GameSession? _session;
 
@@ -32,6 +34,10 @@ public partial class TownController : Node2D
         _classShrine = GetNodeOrNull<Area2D>("YSort/ClassShrine");
         _tierShrine = GetNodeOrNull<Area2D>("YSort/TierShrine");
         _portalToDungeon = GetNodeOrNull<Area2D>("YSort/PortalToDungeon");
+        _stashBox = GetNodeOrNull<Area2D>("YSort/StashBox");
+        _stashPanel = GetNodeOrNull<GodotGameTemplate.Game.UI.Stash.StashPanel>(
+            "Hud/Margin/VBox/StashPanel"
+        );
         _portalToWorld = GetNodeOrNull<Area2D>("YSort/PortalToWorld");
         _session = GetNodeOrNull<GameSession>("/root/GameSession");
         _session?.Potions.Refill();
@@ -53,6 +59,17 @@ public partial class TownController : Node2D
         {
             _session?.Save();
             GetTree().ChangeSceneToFile(WorldScenePath);
+            return;
+        }
+
+        if (_stashBox != null && IsPlayerInsideArea(_player, _stashBox) && _stashPanel != null)
+        {
+            _stashPanel.Visible = !_stashPanel.Visible;
+            if (_stashPanel.Visible)
+            {
+                _stashPanel.Refresh();
+            }
+
             return;
         }
 
