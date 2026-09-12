@@ -55,7 +55,7 @@ public sealed class FacingAnimationResolverTests
         var anim = FacingAnimationResolver.Resolve(Vector2.Down, moving: true, cycleTime: 0.25f);
 
         Assert.Equal(0, anim.Row);
-        Assert.Equal(1, anim.Frame);
+        Assert.Equal(2, anim.Frame);
     }
 
     [Fact]

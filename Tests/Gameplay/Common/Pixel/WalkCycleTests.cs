@@ -28,7 +28,8 @@ public sealed class WalkCycleTests
     [Fact]
     public void FrameFor_CustomFpsAndCount()
     {
-        Assert.Equal(2, WalkCycle.FrameFor(1f, fps: 4f, frameCount: 8));
+        // 4fps 走 1 秒 → 已推进 4 帧。
+        Assert.Equal(4, WalkCycle.FrameFor(1f, fps: 4f, frameCount: 8));
     }
 
     [Fact]
