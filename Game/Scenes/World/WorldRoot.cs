@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Godot;
 using GodotGameTemplate.Config;
 using GodotGameTemplate.Game.Scenes.Items;
+using GodotGameTemplate.Gameplay.Common.Pixel;
 using GodotGameTemplate.Gameplay.Enemies;
 using GodotGameTemplate.Gameplay.Items;
 using GodotGameTemplate.Gameplay.Player;
@@ -24,7 +25,13 @@ public partial class WorldRoot : Node2D
 
     public GameFeatures Features { get; set; } = new();
 
+    private const int GroundTilesX = 20;
+    private const int GroundTilesY = 12;
+    private const int GroundTileSize = 32;
+    private const int GroundSeed = 7;
+
     private Node? _lootContainer;
+    private TileMapLayer? _ground;
     private readonly LootDropper _lootDropper = new();
     private readonly Random _eliteRandom = new();
     private Area2D? _portalToTown;
@@ -33,6 +40,7 @@ public partial class WorldRoot : Node2D
 
     public override void _Ready()
     {
+        BuildGround();
         _lootContainer = GetNodeOrNull("YSort") ?? this;
         LootPickupScene ??= GD.Load<PackedScene>("res://Game/Scenes/Items/LootPickup.tscn");
         _portalToTown = GetNodeOrNull<Area2D>("YSort/PortalToTown");
@@ -77,6 +85,31 @@ public partial class WorldRoot : Node2D
                 _session?.Save();
                 GetTree().ChangeSceneToFile(TownScenePath);
                 return;
+            }
+        }
+    }
+
+    /// <summary>
+    /// 生成像素瓦片地面：铺满相机边界覆盖的世界范围，绘制在 YSort 之下。
+    /// </summary>
+    private void BuildGround()
+    {
+        if (_ground != null)
+        {
+            return;
+        }
+
+        var tileSet = GD.Load<TileSet>("res://Game/Art/Pixel/tileset.tres");
+        _ground = new TileMapLayer { TileSet = tileSet };
+        AddChild(_ground);
+        MoveChild(_ground, 0);
+
+        var layout = GroundLayout.Generate(GroundTilesX, GroundTilesY, GroundSeed, variants: 3);
+        for (var x = 0; x < GroundTilesX; x++)
+        {
+            for (var y = 0; y < GroundTilesY; y++)
+            {
+                _ground.SetCell(new Vector2I(x, y), 0, new Vector2I(layout[x, y], 0));
             }
         }
     }

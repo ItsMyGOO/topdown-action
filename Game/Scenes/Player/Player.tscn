@@ -1,9 +1,10 @@
-[gd_scene load_steps=6 format=3]
+[gd_scene load_steps=7 format=3]
 
 [ext_resource type="Script" path="res://Game/Gameplay/Player/PlayerController.cs" id="1_a8o2x"]
 [ext_resource type="Script" path="res://Game/Gameplay/Player/PlayerView.cs" id="2_hi4c4"]
 [ext_resource type="Script" path="res://Game/Gameplay/Player/PlayerAttackHitbox.cs" id="3_ufeu5"]
 [ext_resource type="Script" path="res://Game/Gameplay/Navigation/ClickToMoveController.cs" id="4_navctl"]
+[ext_resource type="Texture2D" path="res://Game/Art/Pixel/player_sheet.png" id="5_sheet"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_c9bme"]
 radius = 8.0
@@ -20,9 +21,10 @@ shape = SubResource("CircleShape2D_c9bme")
 [node name="View" type="Node2D" parent="."]
 script = ExtResource("2_hi4c4")
 
-[node name="Body" type="Polygon2D" parent="View"]
-polygon = PackedVector2Array(0, -7, 6, 6, 0, 3, -6, 6)
-color = Color(0.639216, 0.85098, 1, 1)
+[node name="Sprite" type="Sprite2D" parent="View"]
+texture = ExtResource("5_sheet")
+hframes = 4
+vframes = 4
 
 [node name="Camera2D" type="Camera2D" parent="."]
 enabled = true

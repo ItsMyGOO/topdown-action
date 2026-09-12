@@ -3,6 +3,7 @@ using GodotGameTemplate.Game.Scenes.Enemies;
 using GodotGameTemplate.Gameplay.Actors.Combat;
 using GodotGameTemplate.Gameplay.Combat;
 using GodotGameTemplate.Gameplay.Combat.Targeting;
+using GodotGameTemplate.Gameplay.Common.Pixel;
 using GodotGameTemplate.Gameplay.Enemies.Feedback;
 using GodotGameTemplate.Gameplay.Items;
 using GodotGameTemplate.Gameplay.Player;
@@ -59,7 +60,7 @@ public partial class BasicEnemyController : CharacterBody2D, IHitReceiver, ITarg
     public float LeashRange { get; set; } = 260f;
 
     [Export]
-    public Polygon2D? Body { get; set; }
+    public Sprite2D? Body { get; set; }
 
     [Export]
     public EnemyHealthBar? HealthBar { get; set; }
@@ -68,7 +69,7 @@ public partial class BasicEnemyController : CharacterBody2D, IHitReceiver, ITarg
     public Color AliveColor { get; set; } = new(0.91f, 0.35f, 0.35f, 1f);
 
     [Export]
-    public Color HitFlashColor { get; set; } = Colors.White;
+    public Color HitFlashColor { get; set; } = new(2.5f, 2.5f, 2.5f, 1f);
 
     [Export]
     public float HitFlashDuration { get; set; } = 0.08f;
@@ -84,6 +85,7 @@ public partial class BasicEnemyController : CharacterBody2D, IHitReceiver, ITarg
     private Vector2 _homePosition;
     private double _hitFlashRemaining;
     private double _touchCooldownRemaining;
+    private float _animClock;
     private bool _dying;
 
     /// <summary>
@@ -105,13 +107,13 @@ public partial class BasicEnemyController : CharacterBody2D, IHitReceiver, ITarg
     {
         Hp = MaxHp;
         _homePosition = GlobalPosition;
-        Body ??= GetNodeOrNull<Polygon2D>("Body");
+        Body ??= GetNodeOrNull<Sprite2D>("Body");
         HealthBar ??= GetNodeOrNull<EnemyHealthBar>("HealthBar");
         AddToGroup("targetable");
 
         if (Body != null)
         {
-            Body.Color = AliveColor;
+            Body.Modulate = AliveColor;
         }
 
         HealthBar?.Update(Hp, MaxHp);
@@ -140,6 +142,7 @@ public partial class BasicEnemyController : CharacterBody2D, IHitReceiver, ITarg
 
         _touchCooldownRemaining = Mathf.Max(0d, _touchCooldownRemaining - delta);
         _knockback.Tick((float)delta);
+        _animClock += (float)delta;
 
         if (GetTree().GetFirstNodeInGroup("player") is not PlayerController player)
         {
@@ -217,7 +220,7 @@ public partial class BasicEnemyController : CharacterBody2D, IHitReceiver, ITarg
 
         if (Body != null)
         {
-            Body.Color = AliveColor;
+            Body.Modulate = AliveColor;
         }
 
         RestoreBodyColor();
@@ -237,7 +240,7 @@ public partial class BasicEnemyController : CharacterBody2D, IHitReceiver, ITarg
 
         if (Body != null)
         {
-            Body.Color = HitFlashColor;
+            Body.Modulate = HitFlashColor;
         }
 
         UpdateHealthBar();
@@ -313,7 +316,7 @@ public partial class BasicEnemyController : CharacterBody2D, IHitReceiver, ITarg
             return;
         }
 
-        Body.Color = Plan switch
+        Body.Modulate = Plan switch
         {
             { IsBoss: true } => new Color(0.62f, 0.12f, 0.12f),
             { Affix: EliteAffix.Sturdy } => new Color(0.95f, 0.55f, 0.15f),

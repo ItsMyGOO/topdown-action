@@ -1,7 +1,8 @@
-[gd_scene load_steps=4 format=3]
+[gd_scene load_steps=5 format=3]
 
 [ext_resource type="Script" path="res://Game/Gameplay/Enemies/BasicEnemyController.cs" id="1_enemy"]
 [ext_resource type="Script" path="res://Game/Scenes/Enemies/EnemyHealthBar.cs" id="2_hpbar"]
+[ext_resource type="Texture2D" path="res://Game/Art/Pixel/enemy_sheet.png" id="3_enemysheet"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_body"]
 radius = 10.0
@@ -9,9 +10,9 @@ radius = 10.0
 [node name="BasicEnemy" type="CharacterBody2D"]
 script = ExtResource("1_enemy")
 
-[node name="Body" type="Polygon2D" parent="."]
-polygon = PackedVector2Array(0, -10, 8, -2, 6, 8, 0, 10, -6, 8, -8, -2)
-color = Color(0.913725, 0.352941, 0.352941, 1)
+[node name="Body" type="Sprite2D" parent="."]
+texture = ExtResource("3_enemysheet")
+hframes = 4
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 shape = SubResource("CircleShape2D_body")

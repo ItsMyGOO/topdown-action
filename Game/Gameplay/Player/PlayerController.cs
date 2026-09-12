@@ -172,7 +172,7 @@ public partial class PlayerController : CharacterBody2D
         _projectileEffectScene = GD.Load<PackedScene>(ProjectileEffectScenePath);
         _aoeStrikeEffectScene = GD.Load<PackedScene>(AoeStrikeEffectScenePath);
 
-        View?.Sync(_context);
+        View?.Sync(_context, 0f);
     }
 
     public PlayerController()
@@ -347,7 +347,7 @@ public partial class PlayerController : CharacterBody2D
         MoveAndSlide();
 
         _context.Velocity = Velocity;
-        View?.Sync(_context);
+        View?.Sync(_context, (float)delta);
     }
 
     private void ApplySkillInput()
