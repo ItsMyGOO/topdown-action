@@ -1,6 +1,7 @@
 using GodotGameTemplate.Gameplay.Items;
 using GodotGameTemplate.Gameplay.Progression;
 using GodotGameTemplate.Gameplay.Progression.Classes;
+using GodotGameTemplate.Gameplay.Progression.Tiers;
 using GodotGameTemplate.Gameplay.Progression.Talents;
 using GodotGameTemplate.Gameplay.Save;
 
@@ -91,7 +92,7 @@ public sealed class GameSessionSaveTests
 
         inventory.TryAdd(new ItemInstance("old", ItemSlot.Armor, ItemRarity.Common, 1));
         equipment.Equip(new ItemInstance("old_weapon", ItemSlot.Weapon, ItemRarity.Common, 1));
-        var gold = SaveDataMapper.ApplyToState(data, inventory, equipment, out _);
+        var gold = SaveDataMapper.ApplyToState(data, inventory, equipment, out _, out _);
 
         Assert.Equal(99, gold);
         Assert.Collection(
@@ -128,7 +129,7 @@ public sealed class GameSessionSaveTests
         inventory.TryAdd(currentItem);
         equipment.Equip(currentItem);
 
-        var gold = SaveDataMapper.ApplyToState(new SaveData(), inventory, equipment, out _);
+        var gold = SaveDataMapper.ApplyToState(new SaveData(), inventory, equipment, out _, out _);
 
         Assert.Equal(0, gold);
         Assert.Empty(inventory.Items);
@@ -157,7 +158,7 @@ public sealed class GameSessionSaveTests
         var equipment = new EquipmentModel();
         var leveling = new LevelingModel();
 
-        SaveDataMapper.ApplyToState(data, inventory, equipment, out _, leveling);
+        SaveDataMapper.ApplyToState(data, inventory, equipment, out _, out _, leveling);
 
         Assert.Equal(3, leveling.Level);
         Assert.Equal(40, leveling.CurrentXp);
@@ -172,7 +173,7 @@ public sealed class GameSessionSaveTests
         var leveling = new LevelingModel();
         leveling.AddXp(20);
 
-        SaveDataMapper.ApplyToState(data, inventory, equipment, out _, leveling);
+        SaveDataMapper.ApplyToState(data, inventory, equipment, out _, out _, leveling);
 
         // 旧存档没有等级字段（反序列化后为默认值 1/0），加载后不应保留内存中的进度。
         Assert.Equal(1, leveling.Level);
@@ -187,7 +188,7 @@ public sealed class GameSessionSaveTests
         var equipment = new EquipmentModel();
         var leveling = new LevelingModel();
 
-        SaveDataMapper.ApplyToState(data, inventory, equipment, out _, leveling);
+        SaveDataMapper.ApplyToState(data, inventory, equipment, out _, out _, leveling);
 
         Assert.Equal(1, leveling.Level);
         Assert.Equal(0, leveling.CurrentXp);
@@ -227,7 +228,7 @@ public sealed class GameSessionSaveTests
         var freshInventory = new InventoryModel();
         var freshLeveling = new LevelingModel();
 
-        SaveDataMapper.ApplyToState(data, freshInventory, freshEquipment, out _, freshLeveling);
+        SaveDataMapper.ApplyToState(data, freshInventory, freshEquipment, out _, out _, freshLeveling);
 
         Assert.Equal(helmet, freshEquipment.Get(ItemSlot.Helmet));
         Assert.Equal(
@@ -257,7 +258,7 @@ public sealed class GameSessionSaveTests
         var inventory = new InventoryModel();
         var equipment = new EquipmentModel();
 
-        SaveDataMapper.ApplyToState(data, inventory, equipment, out _);
+        SaveDataMapper.ApplyToState(data, inventory, equipment, out _, out _);
 
         var weapon = equipment.Weapon;
         Assert.NotNull(weapon);
@@ -283,6 +284,7 @@ public sealed class GameSessionSaveTests
             new InventoryModel(),
             new EquipmentModel(),
             out _,
+            out _,
             null,
             freshTalents
         );
@@ -302,6 +304,7 @@ public sealed class GameSessionSaveTests
             data,
             new InventoryModel(),
             new EquipmentModel(),
+            out _,
             out _,
             null,
             talents
@@ -332,6 +335,7 @@ public sealed class GameSessionSaveTests
             new InventoryModel(),
             new EquipmentModel(),
             out _,
+            out _,
             null,
             null,
             freshPotions
@@ -351,6 +355,7 @@ public sealed class GameSessionSaveTests
             data,
             new InventoryModel(),
             new EquipmentModel(),
+            out _,
             out _,
             null,
             null,
@@ -373,7 +378,7 @@ public sealed class GameSessionSaveTests
         var freshInventory = new InventoryModel();
         var freshEquipment = new EquipmentModel();
 
-        SaveDataMapper.ApplyToState(data, freshInventory, freshEquipment, out var classId);
+        SaveDataMapper.ApplyToState(data, freshInventory, freshEquipment, out var classId, out _);
 
         Assert.Equal("sorcerer", classId);
     }
@@ -387,9 +392,40 @@ public sealed class GameSessionSaveTests
             data,
             new InventoryModel(),
             new EquipmentModel(),
-            out var classId
+            out var classId,
+            out var tier
         );
 
         Assert.Equal(ClassDatabase.DefaultClassId, classId);
+    }
+
+    [Fact]
+    public void SaveDataMapper_WorldTier_RoundTrip()
+    {
+        var data = SaveDataMapper.FromState(0, new InventoryModel().Items, new EquipmentModel(), worldTier: 3);
+
+        Assert.Equal(3, data.WorldTier);
+
+        SaveDataMapper.ApplyToState(data, new InventoryModel(), new EquipmentModel(), out _, out var tier);
+
+        Assert.Equal(3, tier);
+    }
+
+    [Fact]
+    public void SaveDataMapper_LegacySaveWithoutWorldTier_DefaultsNormal()
+    {
+        var data = new SaveData();
+
+        SaveDataMapper.ApplyToState(data, new InventoryModel(), new EquipmentModel(), out _, out var tier);
+
+        Assert.Equal(1, tier);
+    }
+
+    [Fact]
+    public void SaveDataMapper_OutOfRangeWorldTier_Clamps()
+    {
+        var data = SaveDataMapper.FromState(0, new InventoryModel().Items, new EquipmentModel(), worldTier: 42);
+
+        Assert.Equal(3, data.WorldTier);
     }
 }

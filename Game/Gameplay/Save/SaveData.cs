@@ -4,6 +4,7 @@ using GodotGameTemplate.Gameplay.Items;
 using GodotGameTemplate.Gameplay.Progression;
 using GodotGameTemplate.Gameplay.Progression.Classes;
 using GodotGameTemplate.Gameplay.Progression.Talents;
+using GodotGameTemplate.Gameplay.Progression.Tiers;
 
 namespace GodotGameTemplate.Gameplay.Save;
 
@@ -48,6 +49,11 @@ public sealed class SaveData
     /// 当前职业 Id；旧存档缺省为空，加载时回退默认职业。
     /// </summary>
     public string ClassId { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 世界等级（1-3）；旧存档缺省为 0，加载时钳制为 1。
+    /// </summary>
+    public int WorldTier { get; set; }
 
     public List<SaveItemInstanceData> InventoryItems { get; set; } = [];
 
@@ -148,7 +154,8 @@ public static class SaveDataMapper
         LevelingModel? leveling = null,
         TalentModel? talents = null,
         PotionChargesModel? potions = null,
-        string? classId = null
+        string? classId = null,
+        int worldTier = 0
     )
     {
         return new SaveData
@@ -158,6 +165,7 @@ public static class SaveDataMapper
             CurrentXp = leveling?.CurrentXp ?? 0,
             Potions = potions?.Available ?? 0,
             ClassId = classId ?? string.Empty,
+            WorldTier = WorldTierDatabase.Get(worldTier).Tier,
             Talents =
                 talents == null
                     ? []
@@ -201,12 +209,14 @@ public static class SaveDataMapper
         InventoryModel inventory,
         EquipmentModel equipment,
         out string classId,
+        out int worldTier,
         LevelingModel? leveling = null,
         TalentModel? talents = null,
         PotionChargesModel? potions = null
     )
     {
         classId = string.IsNullOrEmpty(data.ClassId) ? ClassDatabase.DefaultClassId : data.ClassId;
+        worldTier = WorldTierDatabase.Get(data.WorldTier).Tier;
 
         inventory.ReplaceItems(data.InventoryItems.Select(item => item.ToItemInstance()));
 

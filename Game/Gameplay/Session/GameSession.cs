@@ -2,6 +2,7 @@ using Godot;
 using GodotGameTemplate.Gameplay.Items;
 using GodotGameTemplate.Gameplay.Progression;
 using GodotGameTemplate.Gameplay.Progression.Classes;
+using GodotGameTemplate.Gameplay.Progression.Tiers;
 using GodotGameTemplate.Gameplay.Progression.Talents;
 using GodotGameTemplate.Gameplay.Save;
 using GodotGameTemplate.Gameplay.Skills;
@@ -29,6 +30,8 @@ public partial class GameSession : Node
     public PotionChargesModel Potions { get; } = new();
 
     public string ClassId { get; set; } = ClassDatabase.DefaultClassId;
+
+    public int WorldTier { get; set; } = 1;
 
     public ISaveService SaveService { get; set; } = new SaveService();
 
@@ -66,7 +69,8 @@ public partial class GameSession : Node
             Leveling,
             Talents,
             Potions,
-            ClassId
+            ClassId,
+            WorldTier
         );
     }
 
@@ -77,10 +81,12 @@ public partial class GameSession : Node
             Inventory,
             Equipment,
             out var classId,
+            out var worldTier,
             Leveling,
             Talents,
             Potions
         );
         ClassId = classId;
+        WorldTier = worldTier;
     }
 }
