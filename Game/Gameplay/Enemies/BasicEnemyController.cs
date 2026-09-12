@@ -1,7 +1,9 @@
 using Godot;
+using GodotGameTemplate.Game.Scenes.Enemies;
 using GodotGameTemplate.Gameplay.Actors.Combat;
 using GodotGameTemplate.Gameplay.Combat;
 using GodotGameTemplate.Gameplay.Combat.Targeting;
+using GodotGameTemplate.Gameplay.Enemies.Feedback;
 using GodotGameTemplate.Gameplay.Items;
 using GodotGameTemplate.Gameplay.Player;
 
@@ -9,7 +11,7 @@ namespace GodotGameTemplate.Gameplay.Enemies;
 
 /// <summary>
 /// 最小敌人控制器：
-/// 支持被点选、被命中，并在生命值归零时死亡。
+/// 支持被点选、被命中（血条/伤害数字/击退反馈），AI 追击，生命归零时播放死亡动画。
 /// 可选地应用精英/Boss 强化计划（<see cref="ApplyPlan"/>）。
 /// </summary>
 public partial class BasicEnemyController : CharacterBody2D, IHitReceiver, ITargetable
@@ -56,16 +58,11 @@ public partial class BasicEnemyController : CharacterBody2D, IHitReceiver, ITarg
     [Export]
     public float LeashRange { get; set; } = 260f;
 
-    private readonly EnemyAiOrchestrator _ai = new();
-    private Vector2 _homePosition;
-
-    /// <summary>
-    /// 已应用的精英/Boss 强化计划（普通怪为 null）。
-    /// </summary>
-    public ElitePlan? Plan { get; private set; }
-
     [Export]
     public Polygon2D? Body { get; set; }
+
+    [Export]
+    public EnemyHealthBar? HealthBar { get; set; }
 
     [Export]
     public Color AliveColor { get; set; } = new(0.91f, 0.35f, 0.35f, 1f);
@@ -76,11 +73,18 @@ public partial class BasicEnemyController : CharacterBody2D, IHitReceiver, ITarg
     [Export]
     public float HitFlashDuration { get; set; } = 0.08f;
 
-    private double _hitFlashRemaining;
-    private double _touchCooldownRemaining;
-
     private const float TouchRange = 26f;
     private const double TouchCooldownSeconds = 0.8d;
+    private const float KnockbackImpulse = 90f;
+    private const float BossKnockbackScale = 0.3f;
+    private const float DeathSeconds = 0.18f;
+
+    private readonly EnemyAiOrchestrator _ai = new();
+    private readonly KnockbackModel _knockback = new();
+    private Vector2 _homePosition;
+    private double _hitFlashRemaining;
+    private double _touchCooldownRemaining;
+    private bool _dying;
 
     /// <summary>
     /// 当前生命值。
@@ -92,22 +96,30 @@ public partial class BasicEnemyController : CharacterBody2D, IHitReceiver, ITarg
     /// </summary>
     public ulong InstanceId => GetInstanceId();
 
+    /// <summary>
+    /// 已应用的精英/Boss 强化计划（普通怪为 null）。
+    /// </summary>
+    public ElitePlan? Plan { get; private set; }
+
     public override void _Ready()
     {
         Hp = MaxHp;
         _homePosition = GlobalPosition;
         Body ??= GetNodeOrNull<Polygon2D>("Body");
+        HealthBar ??= GetNodeOrNull<EnemyHealthBar>("HealthBar");
         AddToGroup("targetable");
 
         if (Body != null)
         {
             Body.Color = AliveColor;
         }
+
+        HealthBar?.Update(Hp, MaxHp);
     }
 
     public override void _Process(double delta)
     {
-        if (_hitFlashRemaining <= 0d || Body == null)
+        if (_dying || _hitFlashRemaining <= 0d || Body == null)
         {
             return;
         }
@@ -121,7 +133,13 @@ public partial class BasicEnemyController : CharacterBody2D, IHitReceiver, ITarg
 
     public override void _PhysicsProcess(double delta)
     {
+        if (_dying)
+        {
+            return;
+        }
+
         _touchCooldownRemaining = Mathf.Max(0d, _touchCooldownRemaining - delta);
+        _knockback.Tick((float)delta);
 
         if (GetTree().GetFirstNodeInGroup("player") is not PlayerController player)
         {
@@ -154,18 +172,22 @@ public partial class BasicEnemyController : CharacterBody2D, IHitReceiver, ITarg
             )
         );
 
-        if (decision.State == EnemyAiState.Idle)
+        if (decision.ReachedHome)
         {
-            Velocity = Vector2.Zero;
-            if (decision.ReachedHome)
-            {
-                Hp = MaxHp;
-            }
+            Hp = MaxHp;
+            UpdateHealthBar();
+        }
 
+        var velocity =
+            decision.State == EnemyAiState.Idle ? Vector2.Zero : decision.Direction * Speed;
+        velocity += new Vector2(_knockback.X, _knockback.Y);
+
+        if (velocity == Vector2.Zero)
+        {
             return;
         }
 
-        Velocity = decision.Direction * Speed;
+        Velocity = velocity;
         MoveAndSlide();
     }
 
@@ -183,21 +205,32 @@ public partial class BasicEnemyController : CharacterBody2D, IHitReceiver, ITarg
         Damage = Mathf.Max(1, Mathf.RoundToInt(Damage * plan.DamageMultiplier));
         Speed = Mathf.Max(0f, Speed * plan.SpeedMultiplier);
 
-        if (Body == null)
-        {
-            return;
-        }
-
         if (plan.IsBoss)
         {
-            Body.Scale *= 1.8f;
+            if (Body != null)
+            {
+                Body.Scale *= 1.8f;
+            }
+
+            HealthBar?.SetWidth(44f);
+        }
+
+        if (Body != null)
+        {
+            Body.Color = AliveColor;
         }
 
         RestoreBodyColor();
+        UpdateHealthBar();
     }
 
     public void ReceiveHit(HitContext hit)
     {
+        if (_dying)
+        {
+            return;
+        }
+
         var effective = DamageMath.Apply(hit.Damage, ResistFlat);
         Hp = Mathf.Max(0, Hp - effective);
         _hitFlashRemaining = HitFlashDuration;
@@ -207,14 +240,70 @@ public partial class BasicEnemyController : CharacterBody2D, IHitReceiver, ITarg
             Body.Color = HitFlashColor;
         }
 
+        UpdateHealthBar();
+        SpawnDamageNumber(effective);
+        ApplyKnockback(hit.Direction);
+
         if (Hp > 0)
         {
             return;
         }
 
+        Die();
+    }
+
+    private void UpdateHealthBar()
+    {
+        HealthBar?.Update(Hp, MaxHp);
+    }
+
+    private void SpawnDamageNumber(int effectiveDamage)
+    {
+        if (GetParent() is Node parent)
+        {
+            DamageNumber.Spawn(parent, GlobalPosition, effectiveDamage);
+        }
+    }
+
+    private void ApplyKnockback(Vector2 hitDirection)
+    {
+        if (hitDirection == Vector2.Zero)
+        {
+            return;
+        }
+
+        var impulse = KnockbackImpulse * (IsBoss ? BossKnockbackScale : 1f);
+        var direction = hitDirection.Normalized();
+        _knockback.Apply(direction.X, direction.Y, impulse);
+    }
+
+    /// <summary>
+    /// 死亡：立即结算（信号、组移除、关碰撞），表现层播放缩放渐隐动画后释放节点。
+    /// </summary>
+    private void Die()
+    {
+        _dying = true;
         EmitSignal(SignalName.Died, GlobalPosition, XpReward);
         RemoveFromGroup("targetable");
-        QueueFree();
+
+        if (HealthBar != null)
+        {
+            HealthBar.Visible = false;
+        }
+
+        GetNodeOrNull<CollisionShape2D>("CollisionShape2D")?.SetDeferred("disabled", true);
+
+        if (Body == null)
+        {
+            QueueFree();
+            return;
+        }
+
+        var tween = CreateTween();
+        tween.SetParallel(true);
+        tween.TweenProperty(Body, "scale", Vector2.Zero, DeathSeconds);
+        tween.TweenProperty(Body, "modulate:a", 0f, DeathSeconds);
+        tween.Chain().TweenCallback(Callable.From(QueueFree));
     }
 
     private void RestoreBodyColor()
