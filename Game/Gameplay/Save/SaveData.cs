@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using GodotGameTemplate.Gameplay.Items;
 using GodotGameTemplate.Gameplay.Progression;
+using GodotGameTemplate.Gameplay.Progression.Classes;
 using GodotGameTemplate.Gameplay.Progression.Talents;
 
 namespace GodotGameTemplate.Gameplay.Save;
@@ -42,6 +43,11 @@ public sealed class SaveData
     /// 药水当前充能；旧存档缺省为 0，加载时视为满充能（缺省语义而非「用光」）。
     /// </summary>
     public int Potions { get; set; }
+
+    /// <summary>
+    /// 当前职业 Id；旧存档缺省为空，加载时回退默认职业。
+    /// </summary>
+    public string ClassId { get; set; } = string.Empty;
 
     public List<SaveItemInstanceData> InventoryItems { get; set; } = [];
 
@@ -141,7 +147,8 @@ public static class SaveDataMapper
         EquipmentModel equipment,
         LevelingModel? leveling = null,
         TalentModel? talents = null,
-        PotionChargesModel? potions = null
+        PotionChargesModel? potions = null,
+        string? classId = null
     )
     {
         return new SaveData
@@ -150,6 +157,7 @@ public static class SaveDataMapper
             Level = leveling?.Level ?? 1,
             CurrentXp = leveling?.CurrentXp ?? 0,
             Potions = potions?.Available ?? 0,
+            ClassId = classId ?? string.Empty,
             Talents =
                 talents == null
                     ? []
@@ -192,11 +200,14 @@ public static class SaveDataMapper
         SaveData data,
         InventoryModel inventory,
         EquipmentModel equipment,
+        out string classId,
         LevelingModel? leveling = null,
         TalentModel? talents = null,
         PotionChargesModel? potions = null
     )
     {
+        classId = string.IsNullOrEmpty(data.ClassId) ? ClassDatabase.DefaultClassId : data.ClassId;
+
         inventory.ReplaceItems(data.InventoryItems.Select(item => item.ToItemInstance()));
 
         var slots = data.EquipmentSlots;
