@@ -306,4 +306,53 @@ public sealed class GameSessionSaveTests
 
         Assert.Empty(talents.Ranks);
     }
+
+    [Fact]
+    public void SaveDataMapper_PotionCharges_RoundTrip()
+    {
+        var potions = new PotionChargesModel();
+        potions.TryConsume();
+        potions.TryConsume();
+
+        var data = SaveDataMapper.FromState(
+            0,
+            new InventoryModel().Items,
+            new EquipmentModel(),
+            null,
+            null,
+            potions
+        );
+        var freshPotions = new PotionChargesModel();
+
+        SaveDataMapper.ApplyToState(
+            data,
+            new InventoryModel(),
+            new EquipmentModel(),
+            null,
+            null,
+            freshPotions
+        );
+
+        Assert.Equal(2, freshPotions.Available);
+    }
+
+    [Fact]
+    public void SaveDataMapper_LegacySaveWithoutPotions_YieldsFullCharges()
+    {
+        var data = new SaveData(); // 旧档无 Potions 字段，反序列化为 0。
+        var potions = new PotionChargesModel();
+        potions.TryConsume();
+
+        SaveDataMapper.ApplyToState(
+            data,
+            new InventoryModel(),
+            new EquipmentModel(),
+            null,
+            null,
+            potions
+        );
+
+        // 旧档视为满充能：0 视为缺省而不是「用光」。
+        Assert.Equal(potions.MaxCharges, potions.Available);
+    }
 }

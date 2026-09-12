@@ -46,6 +46,16 @@ public sealed class LevelingModel
     public const float BonusHealthPerLevel = 5f;
 
     /// <summary>
+    /// 死亡惩罚：损失当前等级内经验的比例。
+    /// </summary>
+    public const double DeathXpLossFraction = 0.1;
+
+    /// <summary>
+    /// 死亡惩罚：损失金币的比例（由会话执行）。
+    /// </summary>
+    public const double DeathGoldLossFraction = 0.1;
+
+    /// <summary>
     /// 当前等级，从 1 开始，单调递增。
     /// </summary>
     public int Level { get; private set; } = 1;
@@ -86,6 +96,20 @@ public sealed class LevelingModel
     /// </summary>
     public float DesiredHealthMax =>
         BaseHealthMax + BonusHealthPerLevel * (Level - 1) + ExternalHealthBonus;
+
+    /// <summary>
+    /// 死亡惩罚：按比例损失当前等级内已积累的经验（钳 0，永不掉级）。
+    /// </summary>
+    public void LoseProgress(double fraction)
+    {
+        if (fraction <= 0d)
+        {
+            return;
+        }
+
+        var loss = (int)(BaseXpPerLevel * Level * fraction);
+        CurrentXp = Math.Max(0, CurrentXp - loss);
+    }
 
     /// <summary>
     /// 增加经验；负数与零忽略。经验达到阈值时自动升级并结转溢出。

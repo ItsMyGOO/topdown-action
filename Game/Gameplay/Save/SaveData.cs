@@ -38,6 +38,11 @@ public sealed class SaveData
     /// </summary>
     public List<SaveTalentData> Talents { get; set; } = [];
 
+    /// <summary>
+    /// 药水当前充能；旧存档缺省为 0，加载时视为满充能（缺省语义而非「用光」）。
+    /// </summary>
+    public int Potions { get; set; }
+
     public List<SaveItemInstanceData> InventoryItems { get; set; } = [];
 
     public SaveEquipmentSlotsData EquipmentSlots { get; set; } = new();
@@ -135,7 +140,8 @@ public static class SaveDataMapper
         IEnumerable<ItemInstance> inventoryItems,
         EquipmentModel equipment,
         LevelingModel? leveling = null,
-        TalentModel? talents = null
+        TalentModel? talents = null,
+        PotionChargesModel? potions = null
     )
     {
         return new SaveData
@@ -143,6 +149,7 @@ public static class SaveDataMapper
             Gold = gold,
             Level = leveling?.Level ?? 1,
             CurrentXp = leveling?.CurrentXp ?? 0,
+            Potions = potions?.Available ?? 0,
             Talents =
                 talents == null
                     ? []
@@ -186,7 +193,8 @@ public static class SaveDataMapper
         InventoryModel inventory,
         EquipmentModel equipment,
         LevelingModel? leveling = null,
-        TalentModel? talents = null
+        TalentModel? talents = null,
+        PotionChargesModel? potions = null
     )
     {
         inventory.ReplaceItems(data.InventoryItems.Select(item => item.ToItemInstance()));
@@ -214,6 +222,12 @@ public static class SaveDataMapper
         if (talents != null)
         {
             talents.Restore(data.Talents.Select(talent => (talent.Id, talent.Rank)));
+        }
+
+        if (potions != null)
+        {
+            // 旧档 Potions 缺省为 0：视为「未记录」补满，而不是真的没药。
+            potions.Restore(data.Potions > 0 ? data.Potions : potions.MaxCharges);
         }
 
         return data.Gold;

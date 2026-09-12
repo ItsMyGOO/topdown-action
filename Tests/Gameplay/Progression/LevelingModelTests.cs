@@ -250,4 +250,41 @@ public sealed class LevelingModelTests
 
         Assert.Equal(120f, health.Max);
     }
+
+    [Fact]
+    public void LoseProgress_ReducesCurrentXpWithoutDeleveling()
+    {
+        var leveling = new LevelingModel();
+        leveling.AddXp(40); // 距升级还差 10。
+
+        leveling.LoseProgress(LevelingModel.DeathXpLossFraction);
+
+        // 损失当前等级预算的 10%（5 点）。
+        Assert.Equal(1, leveling.Level);
+        Assert.Equal(35, leveling.CurrentXp);
+    }
+
+    [Fact]
+    public void LoseProgress_ClampsAtZero()
+    {
+        var leveling = new LevelingModel();
+        leveling.AddXp(3);
+
+        leveling.LoseProgress(LevelingModel.DeathXpLossFraction);
+
+        Assert.Equal(0, leveling.CurrentXp);
+        Assert.Equal(1, leveling.Level);
+    }
+
+    [Fact]
+    public void LoseProgress_NeverDelevels()
+    {
+        var leveling = new LevelingModel();
+        leveling.AddXp(LevelingModel.BaseXpPerLevel + 5); // 2 级，结转 5。
+
+        leveling.LoseProgress(LevelingModel.DeathXpLossFraction);
+
+        Assert.Equal(2, leveling.Level);
+        Assert.Equal(0, leveling.CurrentXp); // 5 - 100*0.1 = 0，钳到 0。
+    }
 }
