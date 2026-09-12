@@ -87,15 +87,18 @@ public partial class PlayerController : CharacterBody2D
     public ClassDefinition Class => ClassDatabase.Get(_session.ClassId);
 
     /// <summary>
-    /// 当前攻击伤害（（武器 Power + 力量天赋）× 职业倍率；未持武器为基础 1）。
+    /// 当前攻击伤害（（武器 Power + 力量天赋 + 暴虐 Paragon）× 职业倍率；未持武器为基础 1）。
     /// </summary>
     public int AttackDamage =>
         Math.Max(
             1,
             (int)
                 Math.Round(
-                    ((Equipment.Weapon?.Power ?? 1) + _talentStats.BonusDamage)
-                        * Class.DamageMultiplier
+                    (
+                        (Equipment.Weapon?.Power ?? 1)
+                        + _talentStats.BonusDamage
+                        + _paragonStats.BonusDamage
+                    ) * Class.DamageMultiplier
                 )
         );
 

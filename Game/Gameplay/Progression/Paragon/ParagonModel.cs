@@ -9,7 +9,7 @@ namespace GodotGameTemplate.Gameplay.Progression.Paragon;
 /// </summary>
 public enum ParagonCategory
 {
-    /// <summary>暴虐：每点 +1% 伤害。</summary>
+    /// <summary>暴虐：每点 +1 伤害。</summary>
     Brutality,
 
     /// <summary>活力：每点 +3 最大生命。</summary>

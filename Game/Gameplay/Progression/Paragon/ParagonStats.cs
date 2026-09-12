@@ -3,12 +3,12 @@ namespace GodotGameTemplate.Gameplay.Progression.Paragon;
 /// <summary>
 /// Paragon 属性汇总（纯逻辑）。
 /// </summary>
-/// <param name="DamageMultiplier">伤害倍率。</param>
+/// <param name="BonusDamage">平加攻击伤害。</param>
 /// <param name="BonusMaxHealth">平加最大生命。</param>
 /// <param name="XpMultiplier">经验倍率。</param>
 /// <param name="MoveSpeedMultiplier">移速倍率。</param>
 public readonly record struct ParagonStatSummary(
-    float DamageMultiplier,
+    int BonusDamage,
     float BonusMaxHealth,
     float XpMultiplier,
     float MoveSpeedMultiplier
@@ -21,7 +21,7 @@ public static class ParagonStats
 {
     public static ParagonStatSummary Aggregate(ParagonModel paragon)
     {
-        float damagePercent = 0f;
+        var bonusDamage = 0;
         float bonusHealth = 0f;
         float xpPercent = 0f;
         float speedPercent = 0f;
@@ -31,7 +31,7 @@ public static class ParagonStats
             switch (category)
             {
                 case ParagonCategory.Brutality:
-                    damagePercent += 1f * rank;
+                    bonusDamage += 1 * rank;
                     break;
                 case ParagonCategory.Vitality:
                     bonusHealth += 3f * rank;
@@ -46,7 +46,7 @@ public static class ParagonStats
         }
 
         return new ParagonStatSummary(
-            1f + damagePercent / 100f,
+            bonusDamage,
             bonusHealth,
             1f + xpPercent / 100f,
             1f + speedPercent / 100f

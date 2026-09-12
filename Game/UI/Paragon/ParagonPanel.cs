@@ -52,7 +52,7 @@ public partial class ParagonPanel : PanelContainer
         foreach (
             var (category, name, description) in new[]
             {
-                (ParagonCategory.Brutality, "暴虐", "+1% 伤害"),
+                (ParagonCategory.Brutality, "暴虐", "+1 伤害"),
                 (ParagonCategory.Vitality, "活力", "+3 最大生命"),
                 (ParagonCategory.Cunning, "智谋", "+1% 经验"),
                 (ParagonCategory.Alacrity, "迅捷", "+0.5% 移速"),
