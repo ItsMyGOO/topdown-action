@@ -31,6 +31,7 @@ func _initialize() -> void:
 	_generate_player()
 	_generate_enemy()
 	_generate_tileset()
+	_generate_orb()
 	quit(0)
 
 
@@ -112,6 +113,22 @@ func _generate_tileset() -> void:
 			var y := state % 32
 			_px2(img, x, y, SPECK)
 	img.save_png(OUT_DIR + "/tileset.png")
+
+
+func _generate_orb() -> void:
+	var img := _new_image(12, 12)
+	var center := Vector2(5.5, 5.5)
+	for y in 12:
+		for x in 12:
+			var d := Vector2(x, y).distance_to(center)
+			if d <= 5.5:
+				if d > 4.2:
+					img.set_pixel(x, y, Color8(120, 20, 24))
+				elif d > 3.0:
+					img.set_pixel(x, y, Color8(206, 48, 48))
+				else:
+					img.set_pixel(x, y, Color8(255, 130, 120))
+	img.save_png(OUT_DIR + "/orb.png")
 
 
 func _new_image(w: int, h: int) -> Image:

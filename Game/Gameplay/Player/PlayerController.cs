@@ -24,6 +24,7 @@ namespace GodotGameTemplate.Gameplay.Player;
 public partial class PlayerController : CharacterBody2D
 {
     private const string TownScenePath = "res://Game/Scenes/Town/Town.tscn";
+    private const float PotionHealFraction = 0.35f;
     private const string AoeIndicatorScenePath = "res://Game/Scenes/Skills/AoeIndicator.tscn";
     private const string ProjectileEffectScenePath =
         "res://Game/Scenes/Skills/ProjectileSkillEffect.tscn";
@@ -96,6 +97,11 @@ public partial class PlayerController : CharacterBody2D
     /// 天赋盘模型（来自会话，供天赋面板读写）。
     /// </summary>
     public TalentModel SessionTalents => _session.Talents;
+
+    /// <summary>
+    /// 药水充能模型（来自会话，供 HUD 显示）。
+    /// </summary>
+    public PotionChargesModel Potions => _session.Potions;
 
     public GameFeatures Features { get; set; } = new();
 
@@ -260,6 +266,11 @@ public partial class PlayerController : CharacterBody2D
             _context.Cooldowns.Tick((float)delta);
         }
         ReconcileLevelGrowth();
+        if (Godot.Input.IsActionJustPressed("use_potion"))
+        {
+            UsePotion();
+        }
+
         var evadePressed = _currentCommand.EvadePressed;
         if (
             evadePressed
@@ -458,7 +469,7 @@ public partial class PlayerController : CharacterBody2D
     }
 
     /// <summary>
-    /// 受到一次伤害：按护甲减免后扣血；归零则延后回城镇满血复活（无惩罚）。
+    /// 受到一次伤害：按护甲减免后扣血；归零则应用死亡惩罚（经验/金币）并回城镇满血复活。
     /// </summary>
     public void TakeDamage(int rawDamage)
     {
@@ -472,8 +483,34 @@ public partial class PlayerController : CharacterBody2D
         if (_context.Health.IsEmpty)
         {
             _respawnQueued = true;
+            ApplyDeathPenalty();
             CallDeferred(nameof(RespawnInTown));
         }
+    }
+
+    /// <summary>
+    /// 使用一瓶生命药水：恢复 35% 最大生命（生命未满且有余充时才可用）。
+    /// </summary>
+    public void UsePotion()
+    {
+        var health = _context.Health;
+        if (health.Current >= health.Max || !_session.Potions.TryConsume())
+        {
+            return;
+        }
+
+        health.Heal(health.Max * PotionHealFraction);
+    }
+
+    private void ApplyDeathPenalty()
+    {
+        if (!Features.EnableLeveling)
+        {
+            return;
+        }
+
+        _session.Leveling.LoseProgress(LevelingModel.DeathXpLossFraction);
+        _session.Gold = (int)Math.Floor(_session.Gold * (1d - LevelingModel.DeathGoldLossFraction));
     }
 
     private void RespawnInTown()

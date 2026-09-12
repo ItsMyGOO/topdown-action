@@ -25,6 +25,9 @@ text = "生命: --/--"
 [node name="EvadeLabel" type="Label" parent="Margin/VBox"]
 text = "闪避: --"
 
+[node name="PotionLabel" type="Label" parent="Margin/VBox"]
+text = "药水: --"
+
 [node name="ManaLabel" type="Label" parent="Margin/VBox"]
 text = "法力: --/--"
 

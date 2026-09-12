@@ -23,17 +23,22 @@ public partial class WorldRoot : Node2D
     [Export]
     public PackedScene? LootPickupScene { get; set; }
 
+    [Export]
+    public PackedScene? HealthOrbScene { get; set; }
+
     public GameFeatures Features { get; set; } = new();
 
     private const int GroundTilesX = 20;
     private const int GroundTilesY = 12;
     private const int GroundTileSize = 32;
+    private const double OrbChanceNormal = 0.30;
     private const int GroundSeed = 7;
 
     private Node? _lootContainer;
     private TileMapLayer? _ground;
     private readonly LootDropper _lootDropper = new();
     private readonly Random _eliteRandom = new();
+    private readonly Random _orbRandom = new();
     private Area2D? _portalToTown;
     private PlayerController? _player;
     private GameSession? _session;
@@ -43,6 +48,7 @@ public partial class WorldRoot : Node2D
         BuildGround();
         _lootContainer = GetNodeOrNull("YSort") ?? this;
         LootPickupScene ??= GD.Load<PackedScene>("res://Game/Scenes/Items/LootPickup.tscn");
+        HealthOrbScene ??= GD.Load<PackedScene>("res://Game/Scenes/Items/HealthOrb.tscn");
         _portalToTown = GetNodeOrNull<Area2D>("YSort/PortalToTown");
         _session = GetNodeOrNull<GameSession>("/root/GameSession");
 
@@ -134,14 +140,23 @@ public partial class WorldRoot : Node2D
         var dropCount = plan?.DropCount ?? 1;
         var rarityFloor = plan?.RarityFloor ?? ItemRarity.Common;
 
+        // 血球：普通怪 30%，精英必掉 1，Boss 2。
+        var orbCount = plan switch
+        {
+            { IsBoss: true } => 2,
+            { Affix: not EliteAffix.None } => 1,
+            _ when _orbRandom.NextDouble() < OrbChanceNormal => 1,
+            _ => 0,
+        };
+
         // 该信号可能来自物理回调（例如 Area2D.BodyEntered）期间。
         // 在 flushing queries 阶段直接 AddChild/改监测状态会触发引擎报错：
         // "Can't change this state while flushing queries."
         // 因此这里统一延后到空闲帧再生成掉落。
-        CallDeferred(nameof(SpawnLootDeferred), pos, dropCount, (int)rarityFloor);
+        CallDeferred(nameof(SpawnLootDeferred), pos, dropCount, (int)rarityFloor, orbCount);
     }
 
-    private void SpawnLootDeferred(Vector2 pos, int dropCount, int rarityFloor)
+    private void SpawnLootDeferred(Vector2 pos, int dropCount, int rarityFloor, int orbCount)
     {
         if (!Features.EnableLoot || LootPickupScene == null || _lootContainer == null)
         {
@@ -154,6 +169,18 @@ public partial class WorldRoot : Node2D
             loot.GlobalPosition = pos + new Vector2(i * 10f, 0);
             loot.Item = _lootDropper.RollDrop((ItemRarity)rarityFloor);
             _lootContainer.AddChild(loot);
+        }
+
+        if (HealthOrbScene == null)
+        {
+            return;
+        }
+
+        for (var i = 0; i < orbCount; i++)
+        {
+            var orb = HealthOrbScene.Instantiate<HealthOrb>();
+            orb.GlobalPosition = pos + new Vector2(-8f + i * 16f, 8f);
+            _lootContainer.AddChild(orb);
         }
     }
 

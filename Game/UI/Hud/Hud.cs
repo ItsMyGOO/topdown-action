@@ -14,6 +14,7 @@ public partial class Hud : CanvasLayer
 {
     private Label _lifeLabel = default!;
     private Label _evadeLabel = default!;
+    private Label _potionLabel = default!;
     private Label _manaLabel = default!;
     private Label _goldLabel = default!;
     private Label _levelLabel = default!;
@@ -37,6 +38,7 @@ public partial class Hud : CanvasLayer
     {
         _lifeLabel = GetNode<Label>("Margin/VBox/LifeLabel");
         _evadeLabel = GetNode<Label>("Margin/VBox/EvadeLabel");
+        _potionLabel = GetNode<Label>("Margin/VBox/PotionLabel");
         _manaLabel = GetNode<Label>("Margin/VBox/ManaLabel");
         _goldLabel = GetNode<Label>("Margin/VBox/GoldLabel");
         _levelLabel = GetNode<Label>("Margin/VBox/LevelLabel");
@@ -94,6 +96,7 @@ public partial class Hud : CanvasLayer
         {
             _lifeLabel.Text = "生命: --/--";
             _evadeLabel.Text = "闪避: --";
+            _potionLabel.Text = "药水: --";
             _manaLabel.Text = "法力: --/--";
             _goldLabel.Text = "金币: 0";
             _levelLabel.Visible = false;
@@ -105,6 +108,8 @@ public partial class Hud : CanvasLayer
         var mana = _player.ActorContext.Mana;
         _lifeLabel.Text = $"生命: {health.Current:0}/{health.Max:0}";
         _evadeLabel.Text = $"闪避: {evade.Available}/{evade.MaxCharges}";
+        var potions = _player.Potions;
+        _potionLabel.Text = $"药水: {potions.Available}/{potions.MaxCharges} (Q)";
         _manaLabel.Text = $"法力: {mana.Current:0}/{mana.Max:0}";
         _goldLabel.Text = $"金币: {_player.Gold}";
 

@@ -25,6 +25,8 @@ public partial class GameSession : Node
 
     public TalentModel Talents { get; } = new();
 
+    public PotionChargesModel Potions { get; } = new();
+
     public ISaveService SaveService { get; set; } = new SaveService();
 
     public int Gold { get; set; }
@@ -54,11 +56,18 @@ public partial class GameSession : Node
 
     public SaveData ToSaveData()
     {
-        return SaveDataMapper.FromState(Gold, Inventory.Items, Equipment, Leveling, Talents);
+        return SaveDataMapper.FromState(
+            Gold,
+            Inventory.Items,
+            Equipment,
+            Leveling,
+            Talents,
+            Potions
+        );
     }
 
     public void ApplySaveData(SaveData data)
     {
-        Gold = SaveDataMapper.ApplyToState(data, Inventory, Equipment, Leveling, Talents);
+        Gold = SaveDataMapper.ApplyToState(data, Inventory, Equipment, Leveling, Talents, Potions);
     }
 }

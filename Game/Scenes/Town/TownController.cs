@@ -26,6 +26,7 @@ public partial class TownController : Node2D
         _vendorArea = GetNodeOrNull<Area2D>("YSort/Vendor");
         _portalToWorld = GetNodeOrNull<Area2D>("YSort/PortalToWorld");
         _session = GetNodeOrNull<GameSession>("/root/GameSession");
+        _session?.Potions.Refill();
     }
 
     public override void _PhysicsProcess(double delta)
