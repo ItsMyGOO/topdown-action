@@ -51,7 +51,7 @@ public partial class TalentPanel : PanelContainer
             {
                 Text =
                     $"当前加成: 伤害+{summary.BonusDamage}  生命+{summary.BonusMaxHealth:0}  "
-                    + $"法力+{summary.BonusMaxMana:0}  体力+{summary.BonusMaxStamina:0}  "
+                    + $"法力+{summary.BonusMaxMana:0}  闪避回复-{summary.EvadeRechargeSecondsReduction:0}秒  "
                     + $"经验×{summary.XpMultiplier:0.00}  移速×{summary.MoveSpeedMultiplier:0.00}",
                 AutowrapMode = TextServer.AutowrapMode.WordSmart,
             }

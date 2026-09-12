@@ -82,13 +82,11 @@ public sealed class LevelingModelTests
     {
         var leveling = new LevelingModel();
         var mana = new ManaModel();
-        var stamina = new StaminaModel();
 
         leveling.AddXp(LevelingModel.BaseXpPerLevel);
-        leveling.ApplyGrowth(stamina, mana);
+        leveling.ApplyGrowth(mana);
 
         Assert.Equal(102f, mana.Max);
-        Assert.Equal(102f, stamina.Max);
     }
 
     [Fact]
@@ -98,8 +96,8 @@ public sealed class LevelingModelTests
         var mana = new ManaModel();
 
         leveling.AddXp(LevelingModel.BaseXpPerLevel);
-        leveling.ApplyGrowth(null, mana);
-        leveling.ApplyGrowth(null, mana);
+        leveling.ApplyGrowth(mana);
+        leveling.ApplyGrowth(mana);
 
         Assert.Equal(102f, mana.Max);
     }
@@ -111,7 +109,7 @@ public sealed class LevelingModelTests
         var mana = new ManaModel();
 
         leveling.AddXp(160);
-        leveling.ApplyGrowth(null, mana);
+        leveling.ApplyGrowth(mana);
 
         Assert.Equal(104f, mana.Max);
     }
@@ -122,7 +120,7 @@ public sealed class LevelingModelTests
         var leveling = new LevelingModel();
         var mana = new ManaModel();
 
-        leveling.ApplyGrowth(null, mana);
+        leveling.ApplyGrowth(mana);
 
         Assert.Equal(100f, mana.Max);
     }
@@ -134,12 +132,12 @@ public sealed class LevelingModelTests
         var mana = new ManaModel();
 
         leveling.AddXp(LevelingModel.BaseXpPerLevel);
-        leveling.ApplyGrowth(null, mana);
+        leveling.ApplyGrowth(mana);
         Assert.Equal(102f, mana.Max);
 
         // 模拟会话中途读档：模型 Max 仍带着已应用的加成。
         leveling.Restore(2, 0);
-        leveling.ApplyGrowth(null, mana);
+        leveling.ApplyGrowth(mana);
 
         Assert.Equal(102f, mana.Max);
     }
@@ -158,16 +156,14 @@ public sealed class LevelingModelTests
     [Fact]
     public void ApplyGrowth_CombinesExternalEquipmentBonusWithLevelBonus()
     {
-        var leveling = new LevelingModel { ExternalManaBonus = 12f, ExternalStaminaBonus = 7f };
+        var leveling = new LevelingModel { ExternalManaBonus = 12f };
         var mana = new ManaModel();
-        var stamina = new StaminaModel();
 
         leveling.AddXp(LevelingModel.BaseXpPerLevel);
-        leveling.ApplyGrowth(stamina, mana);
+        leveling.ApplyGrowth(mana);
 
-        // 等级加成 +2 与装备加成 12/7 叠加在基准 100 上。
+        // 等级加成 +2 与装备加成 12 叠加在基准 100 上。
         Assert.Equal(114f, mana.Max);
-        Assert.Equal(109f, stamina.Max);
     }
 
     [Fact]
@@ -177,11 +173,11 @@ public sealed class LevelingModelTests
         var mana = new ManaModel();
 
         leveling.AddXp(LevelingModel.BaseXpPerLevel);
-        leveling.ApplyGrowth(null, mana);
+        leveling.ApplyGrowth(mana);
         Assert.Equal(112f, mana.Max);
 
         leveling.Restore(2, 0);
-        leveling.ApplyGrowth(null, mana);
+        leveling.ApplyGrowth(mana);
 
         Assert.Equal(112f, mana.Max);
     }
@@ -189,15 +185,13 @@ public sealed class LevelingModelTests
     [Fact]
     public void DesiredMax_CombinesBaseLevelAndExternalBonuses()
     {
-        var leveling = new LevelingModel { ExternalManaBonus = 15f, ExternalStaminaBonus = 4f };
+        var leveling = new LevelingModel { ExternalManaBonus = 15f };
 
         Assert.Equal(115f, leveling.DesiredManaMax);
-        Assert.Equal(104f, leveling.DesiredStaminaMax);
 
         leveling.AddXp(LevelingModel.BaseXpPerLevel);
 
         Assert.Equal(117f, leveling.DesiredManaMax);
-        Assert.Equal(106f, leveling.DesiredStaminaMax);
     }
 
     [Fact]
@@ -208,7 +202,7 @@ public sealed class LevelingModelTests
         health.Heal(999f); // 当前生命撑到 200。
 
         leveling.AddXp(LevelingModel.BaseXpPerLevel);
-        leveling.ApplyGrowth(null, null, health);
+        leveling.ApplyGrowth(null, health);
 
         // 生命上限按等级成长；超出新上限的当前值被钳制。
         Assert.Equal(105f, health.Max);
@@ -223,7 +217,7 @@ public sealed class LevelingModelTests
         health.TakeDamage(50f);
 
         leveling.AddXp(LevelingModel.BaseXpPerLevel);
-        leveling.ApplyGrowth(null, null, health);
+        leveling.ApplyGrowth(null, health);
 
         Assert.Equal(105f, health.Max);
         Assert.Equal(50f, health.Current);
@@ -248,11 +242,11 @@ public sealed class LevelingModelTests
         var health = new HealthModel();
 
         leveling.AddXp(LevelingModel.BaseXpPerLevel);
-        leveling.ApplyGrowth(null, null, health);
+        leveling.ApplyGrowth(null, health);
         Assert.Equal(120f, health.Max);
 
         leveling.Restore(2, 0);
-        leveling.ApplyGrowth(null, null, health);
+        leveling.ApplyGrowth(null, health);
 
         Assert.Equal(120f, health.Max);
     }

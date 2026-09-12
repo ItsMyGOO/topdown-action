@@ -17,7 +17,7 @@ public static class AffixTable
     private static readonly AffixDefinition[] Pool =
     [
         new(AffixStat.BonusMaxMana, 5, 15),
-        new(AffixStat.BonusMaxStamina, 5, 15),
+        new(AffixStat.BonusArmor, 5, 15),
         new(AffixStat.BonusXpPercent, 5, 20),
     ];
 

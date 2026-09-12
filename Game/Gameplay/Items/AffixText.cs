@@ -14,7 +14,7 @@ public static class AffixText
         return affix.Stat switch
         {
             AffixStat.BonusMaxMana => $"+{affix.Value:0} 最大法力",
-            AffixStat.BonusMaxStamina => $"+{affix.Value:0} 最大体力",
+            AffixStat.BonusArmor => $"+{affix.Value:0} 护甲",
             AffixStat.BonusXpPercent => $"+{affix.Value:0}% 经验获取",
             _ => throw new ArgumentOutOfRangeException(nameof(affix)),
         };

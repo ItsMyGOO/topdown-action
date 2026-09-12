@@ -13,7 +13,7 @@ namespace GodotGameTemplate.Game.UI.Hud;
 public partial class Hud : CanvasLayer
 {
     private Label _lifeLabel = default!;
-    private Label _staminaLabel = default!;
+    private Label _evadeLabel = default!;
     private Label _manaLabel = default!;
     private Label _goldLabel = default!;
     private Label _levelLabel = default!;
@@ -36,7 +36,7 @@ public partial class Hud : CanvasLayer
     public override void _Ready()
     {
         _lifeLabel = GetNode<Label>("Margin/VBox/LifeLabel");
-        _staminaLabel = GetNode<Label>("Margin/VBox/StaminaLabel");
+        _evadeLabel = GetNode<Label>("Margin/VBox/EvadeLabel");
         _manaLabel = GetNode<Label>("Margin/VBox/ManaLabel");
         _goldLabel = GetNode<Label>("Margin/VBox/GoldLabel");
         _levelLabel = GetNode<Label>("Margin/VBox/LevelLabel");
@@ -93,7 +93,7 @@ public partial class Hud : CanvasLayer
         if (_player == null)
         {
             _lifeLabel.Text = "生命: --/--";
-            _staminaLabel.Text = "体力: --/--";
+            _evadeLabel.Text = "闪避: --";
             _manaLabel.Text = "法力: --/--";
             _goldLabel.Text = "金币: 0";
             _levelLabel.Visible = false;
@@ -101,10 +101,10 @@ public partial class Hud : CanvasLayer
         }
 
         var health = _player.ActorContext.Health;
-        var stamina = _player.ActorContext.Stamina;
+        var evade = _player.ActorContext.Evade;
         var mana = _player.ActorContext.Mana;
         _lifeLabel.Text = $"生命: {health.Current:0}/{health.Max:0}";
-        _staminaLabel.Text = $"体力: {stamina.Current:0}/{stamina.Max:0}";
+        _evadeLabel.Text = $"闪避: {evade.Available}/{evade.MaxCharges}";
         _manaLabel.Text = $"法力: {mana.Current:0}/{mana.Max:0}";
         _goldLabel.Text = $"金币: {_player.Gold}";
 

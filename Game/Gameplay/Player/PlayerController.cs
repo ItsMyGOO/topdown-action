@@ -23,7 +23,6 @@ namespace GodotGameTemplate.Gameplay.Player;
 
 public partial class PlayerController : CharacterBody2D
 {
-    private const float EvadeStaminaCost = 25f;
     private const string TownScenePath = "res://Game/Scenes/Town/Town.tscn";
     private const string AoeIndicatorScenePath = "res://Game/Scenes/Skills/AoeIndicator.tscn";
     private const string ProjectileEffectScenePath =
@@ -253,7 +252,7 @@ public partial class PlayerController : CharacterBody2D
             AttackHitbox.Damage = AttackDamage;
         }
 
-        _context.Stamina.Tick((float)delta);
+        _context.Evade.Tick((float)delta);
         _context.Health.Tick((float)delta);
         if (Features.EnableSkills)
         {
@@ -270,7 +269,7 @@ public partial class PlayerController : CharacterBody2D
             && !_context.IsTargeting
         )
         {
-            if (_context.Stamina.TryConsume(EvadeStaminaCost))
+            if (_context.Evade.TryConsume())
             {
                 _stateMachine.ChangeState(_evadeState);
             }
@@ -427,19 +426,21 @@ public partial class PlayerController : CharacterBody2D
 
         var stats = EquipmentStats.Summarize(_session.Equipment);
         leveling.ExternalManaBonus = stats.MaxManaBonus + _talentStats.BonusMaxMana;
-        leveling.ExternalStaminaBonus = stats.MaxStaminaBonus + _talentStats.BonusMaxStamina;
         leveling.ExternalHealthBonus = _talentStats.BonusMaxHealth;
+        _context.Evade.RechargeSeconds = MathF.Max(
+            1.5f,
+            _context.Evade.RechargeSecondsBase - _talentStats.EvadeRechargeSecondsReduction
+        );
 
         var manaInSync = Mathf.IsEqualApprox(_context.Mana.Max, leveling.DesiredManaMax);
-        var staminaInSync = Mathf.IsEqualApprox(_context.Stamina.Max, leveling.DesiredStaminaMax);
         var healthInSync = Mathf.IsEqualApprox(_context.Health.Max, leveling.DesiredHealthMax);
-        if (manaInSync && staminaInSync && healthInSync)
+        if (manaInSync && healthInSync)
         {
             return;
         }
 
         var previousLevel = leveling.AppliedGrowthLevel;
-        leveling.ApplyGrowth(_context.Stamina, _context.Mana, _context.Health);
+        leveling.ApplyGrowth(_context.Mana, _context.Health);
 
         if (leveling.AppliedGrowthLevel > previousLevel)
         {

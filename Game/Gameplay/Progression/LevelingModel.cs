@@ -31,19 +31,9 @@ public sealed class LevelingModel
     public const float BonusManaPerLevel = 2f;
 
     /// <summary>
-    /// 每级增加的最大体力加成。
-    /// </summary>
-    public const float BonusStaminaPerLevel = 2f;
-
-    /// <summary>
-    /// 资源模型的基准 Max（与 <see cref="ManaModel"/>/<see cref="StaminaModel"/> 默认值一致）。
+    /// 资源模型的基准 Max（与 <see cref="ManaModel"/> 默认值一致）。
     /// </summary>
     public const float BaseManaMax = 100f;
-
-    /// <summary>
-    /// 体力模型的基准 Max。
-    /// </summary>
-    public const float BaseStaminaMax = 100f;
 
     /// <summary>
     /// 生命模型的基准 Max。
@@ -76,11 +66,6 @@ public sealed class LevelingModel
     public float ExternalManaBonus { get; set; }
 
     /// <summary>
-    /// 外部来源的最大体力加成（如装备词条）。由结算方在 <see cref="ApplyGrowth"/> 前写入。
-    /// </summary>
-    public float ExternalStaminaBonus { get; set; }
-
-    /// <summary>
     /// 外部来源的最大生命加成（如天赋）。由结算方在 <see cref="ApplyGrowth"/> 前写入。
     /// </summary>
     public float ExternalHealthBonus { get; set; }
@@ -95,12 +80,6 @@ public sealed class LevelingModel
     /// </summary>
     public float DesiredManaMax =>
         BaseManaMax + BonusManaPerLevel * (Level - 1) + ExternalManaBonus;
-
-    /// <summary>
-    /// 期望最大体力（基准 + 等级加成 + 外部加成）。
-    /// </summary>
-    public float DesiredStaminaMax =>
-        BaseStaminaMax + BonusStaminaPerLevel * (Level - 1) + ExternalStaminaBonus;
 
     /// <summary>
     /// 期望最大生命（基准 + 等级加成 + 外部加成）。
@@ -146,22 +125,16 @@ public sealed class LevelingModel
     }
 
     /// <summary>
-    /// 把等级加成与外部加成（装备词条）合并应用到传入的资源模型
+    /// 把等级加成与外部加成（装备词条/天赋）合并应用到传入的资源模型
     /// （绝对式赋值：基准 + 每级加成×已达等级 + 外部加成）。
     /// <para>
     /// 绝对式赋值天然幂等：读档后（<see cref="Restore"/>）重复结算不会叠加加成。
     /// 允许传 <c>null</c> 跳过其一；生命模型结算后会 <see cref="HealthModel.ClampToMax"/>。
     /// </para>
     /// </summary>
-    public void ApplyGrowth(StaminaModel? stamina, ManaModel? mana, HealthModel? health = null)
+    public void ApplyGrowth(ManaModel? mana, HealthModel? health = null)
     {
         var gainedLevels = Level - 1;
-
-        if (stamina != null)
-        {
-            stamina.Max =
-                BaseStaminaMax + BonusStaminaPerLevel * gainedLevels + ExternalStaminaBonus;
-        }
 
         if (mana != null)
         {

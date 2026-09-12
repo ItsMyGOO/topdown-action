@@ -8,7 +8,7 @@ public sealed class AffixTextTests
     public void Format_MapsEachStatToChineseDescription()
     {
         Assert.Equal("+12 最大法力", AffixText.Format(new AffixLine(AffixStat.BonusMaxMana, 12f)));
-        Assert.Equal("+9 最大体力", AffixText.Format(new AffixLine(AffixStat.BonusMaxStamina, 9f)));
+        Assert.Equal("+9 护甲", AffixText.Format(new AffixLine(AffixStat.BonusArmor, 9f)));
         Assert.Equal(
             "+15% 经验获取",
             AffixText.Format(new AffixLine(AffixStat.BonusXpPercent, 15f))

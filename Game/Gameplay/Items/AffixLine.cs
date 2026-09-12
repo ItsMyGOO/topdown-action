@@ -7,7 +7,7 @@ public enum AffixStat
 {
     BonusMaxMana,
 
-    BonusMaxStamina,
+    BonusArmor,
 
     BonusXpPercent,
 }

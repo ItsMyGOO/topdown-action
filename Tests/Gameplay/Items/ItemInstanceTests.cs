@@ -28,30 +28,21 @@ public sealed class ItemInstanceTests
             ItemSlot.Weapon,
             ItemRarity.Rare,
             5,
-            [
-                new AffixLine(AffixStat.BonusMaxMana, 10f),
-                new AffixLine(AffixStat.BonusMaxStamina, 5f),
-            ]
+            [new AffixLine(AffixStat.BonusMaxMana, 10f), new AffixLine(AffixStat.BonusArmor, 5f)]
         );
         var sameValues = new ItemInstance(
             "sword",
             ItemSlot.Weapon,
             ItemRarity.Rare,
             5,
-            [
-                new AffixLine(AffixStat.BonusMaxMana, 10f),
-                new AffixLine(AffixStat.BonusMaxStamina, 5f),
-            ]
+            [new AffixLine(AffixStat.BonusMaxMana, 10f), new AffixLine(AffixStat.BonusArmor, 5f)]
         );
         var swapped = new ItemInstance(
             "sword",
             ItemSlot.Weapon,
             ItemRarity.Rare,
             5,
-            [
-                new AffixLine(AffixStat.BonusMaxStamina, 5f),
-                new AffixLine(AffixStat.BonusMaxMana, 10f),
-            ]
+            [new AffixLine(AffixStat.BonusArmor, 5f), new AffixLine(AffixStat.BonusMaxMana, 10f)]
         );
         var noAffixes = new ItemInstance("sword", ItemSlot.Weapon, ItemRarity.Rare, 5);
 

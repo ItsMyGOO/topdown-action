@@ -81,13 +81,13 @@ public sealed class TalentModelTests
     {
         var talents = new TalentModel();
 
-        talents.Restore([(TalentDatabase.Might, 9), ("nope", 3), (TalentDatabase.Endurance, 0)]);
+        talents.Restore([(TalentDatabase.Might, 9), ("nope", 3), (TalentDatabase.Fleetfooted, 0)]);
 
         Assert.Equal(
             TalentDatabase.Get(TalentDatabase.Might)!.MaxRank,
             talents.Ranks[TalentDatabase.Might]
         );
         Assert.False(talents.Ranks.ContainsKey("nope"));
-        Assert.False(talents.Ranks.ContainsKey(TalentDatabase.Endurance));
+        Assert.False(talents.Ranks.ContainsKey(TalentDatabase.Fleetfooted));
     }
 }

@@ -13,9 +13,9 @@ public sealed class ActorContext
     public Vector2 Facing { get; set; } = Vector2.Down;
 
     /// <summary>
-    /// 体力模型（纯逻辑），用于翻滚/技能等消耗。
+    /// 闪避充能模型（纯逻辑，D4 式：双充能自动回复）。
     /// </summary>
-    public StaminaModel Stamina { get; } = new();
+    public EvadeChargesModel Evade { get; } = new();
 
     /// <summary>
     /// 生命模型（纯逻辑），归零即死亡。

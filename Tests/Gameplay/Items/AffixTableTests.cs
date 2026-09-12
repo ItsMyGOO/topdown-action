@@ -53,7 +53,7 @@ public sealed class AffixTableTests
                 switch (affix.Stat)
                 {
                     case AffixStat.BonusMaxMana:
-                    case AffixStat.BonusMaxStamina:
+                    case AffixStat.BonusArmor:
                         Assert.InRange(affix.Value, 5f, 15f);
                         break;
                     case AffixStat.BonusXpPercent:

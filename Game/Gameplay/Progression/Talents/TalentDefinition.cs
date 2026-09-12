@@ -29,7 +29,7 @@ public static class TalentDatabase
     public const string Might = "might";
     public const string Toughness = "toughness";
     public const string Meditation = "meditation";
-    public const string Endurance = "endurance";
+    public const string Fleetfooted = "fleetfooted";
     public const string Wisdom = "wisdom";
     public const string Swiftness = "swiftness";
 
@@ -45,7 +45,7 @@ public static class TalentDatabase
             RequiresRank: 1
         ),
         new TalentDefinition(Meditation, "冥想", "+5 最大法力", 3),
-        new TalentDefinition(Endurance, "耐力", "+10 最大体力", 3),
+        new TalentDefinition(Fleetfooted, "轻足", "闪避充能回复 -1 秒", 2),
         new TalentDefinition(
             Wisdom,
             "智慧",

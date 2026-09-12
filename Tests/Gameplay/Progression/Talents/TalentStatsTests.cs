@@ -12,7 +12,7 @@ public sealed class TalentStatsTests
         Assert.Equal(0, summary.BonusDamage);
         Assert.Equal(0f, summary.BonusMaxHealth);
         Assert.Equal(0f, summary.BonusMaxMana);
-        Assert.Equal(0f, summary.BonusMaxStamina);
+        Assert.Equal(0f, summary.EvadeRechargeSecondsReduction);
         Assert.Equal(1f, summary.XpMultiplier);
         Assert.Equal(1f, summary.MoveSpeedMultiplier);
     }
@@ -25,7 +25,7 @@ public sealed class TalentStatsTests
             (TalentDatabase.Might, 2),
             (TalentDatabase.Toughness, 1),
             (TalentDatabase.Meditation, 2),
-            (TalentDatabase.Endurance, 1),
+            (TalentDatabase.Fleetfooted, 1),
             (TalentDatabase.Wisdom, 2),
             (TalentDatabase.Swiftness, 1),
         ]);
@@ -35,7 +35,7 @@ public sealed class TalentStatsTests
         Assert.Equal(2, summary.BonusDamage);
         Assert.Equal(10f, summary.BonusMaxHealth);
         Assert.Equal(10f, summary.BonusMaxMana);
-        Assert.Equal(10f, summary.BonusMaxStamina);
+        Assert.Equal(1f, summary.EvadeRechargeSecondsReduction);
         Assert.Equal(1.1f, summary.XpMultiplier);
         Assert.Equal(1.08f, summary.MoveSpeedMultiplier);
     }

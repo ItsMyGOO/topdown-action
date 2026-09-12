@@ -217,7 +217,7 @@ public sealed class GameSessionSaveTests
                 ItemSlot.Boots,
                 ItemRarity.Magic,
                 3,
-                [new AffixLine(AffixStat.BonusMaxStamina, 9f)]
+                [new AffixLine(AffixStat.BonusArmor, 9f)]
             )
         );
 
@@ -235,7 +235,7 @@ public sealed class GameSessionSaveTests
                 ItemSlot.Boots,
                 ItemRarity.Magic,
                 3,
-                [new AffixLine(AffixStat.BonusMaxStamina, 9f)]
+                [new AffixLine(AffixStat.BonusArmor, 9f)]
             ),
             freshEquipment.Get(ItemSlot.Boots)
         );

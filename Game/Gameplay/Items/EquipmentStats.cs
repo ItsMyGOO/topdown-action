@@ -6,12 +6,10 @@ namespace GodotGameTemplate.Gameplay.Items;
 /// 装备属性汇总（纯逻辑）。
 /// </summary>
 /// <param name="MaxManaBonus">平加最大法力。</param>
-/// <param name="MaxStaminaBonus">平加最大体力。</param>
 /// <param name="XpMultiplier">经验倍率（1 + 百分比词条之和/100）。</param>
-/// <param name="Armor">护甲（非武器已装备槽 Power 之和），减免受到的伤害。</param>
+/// <param name="Armor">护甲（非武器槽 Power 之和 + 护甲词条），减免受到的伤害。</param>
 public readonly record struct EquipmentStatSummary(
     float MaxManaBonus,
-    float MaxStaminaBonus,
     float XpMultiplier,
     int Armor
 );
@@ -24,7 +22,6 @@ public static class EquipmentStats
     public static EquipmentStatSummary Summarize(EquipmentModel equipment)
     {
         float maxMana = 0f;
-        float maxStamina = 0f;
         var xpPercent = 0f;
         var armor = 0;
 
@@ -42,8 +39,8 @@ public static class EquipmentStats
                     case AffixStat.BonusMaxMana:
                         maxMana += affix.Value;
                         break;
-                    case AffixStat.BonusMaxStamina:
-                        maxStamina += affix.Value;
+                    case AffixStat.BonusArmor:
+                        armor += (int)affix.Value;
                         break;
                     case AffixStat.BonusXpPercent:
                         xpPercent += affix.Value;
@@ -52,6 +49,6 @@ public static class EquipmentStats
             }
         }
 
-        return new EquipmentStatSummary(maxMana, maxStamina, 1f + xpPercent / 100f, armor);
+        return new EquipmentStatSummary(maxMana, 1f + xpPercent / 100f, armor);
     }
 }

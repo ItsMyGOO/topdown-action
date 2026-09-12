@@ -6,14 +6,14 @@ namespace GodotGameTemplate.Gameplay.Progression.Talents;
 /// <param name="BonusDamage">平加攻击伤害。</param>
 /// <param name="BonusMaxHealth">平加最大生命。</param>
 /// <param name="BonusMaxMana">平加最大法力。</param>
-/// <param name="BonusMaxStamina">平加最大体力。</param>
+/// <param name="EvadeRechargeSecondsReduction">闪避充能回复缩短秒数。</param>
 /// <param name="XpMultiplier">经验倍率。</param>
 /// <param name="MoveSpeedMultiplier">移动速度倍率。</param>
 public readonly record struct TalentStatSummary(
     int BonusDamage,
     float BonusMaxHealth,
     float BonusMaxMana,
-    float BonusMaxStamina,
+    float EvadeRechargeSecondsReduction,
     float XpMultiplier,
     float MoveSpeedMultiplier
 );
@@ -28,7 +28,7 @@ public static class TalentStats
         var bonusDamage = 0;
         float bonusHealth = 0f;
         float bonusMana = 0f;
-        float bonusStamina = 0f;
+        var evadeRechargeReduction = 0f;
         var xpPercent = 0f;
         var speedPercent = 0f;
 
@@ -45,8 +45,8 @@ public static class TalentStats
                 case TalentDatabase.Meditation:
                     bonusMana += 5f * rank;
                     break;
-                case TalentDatabase.Endurance:
-                    bonusStamina += 10f * rank;
+                case TalentDatabase.Fleetfooted:
+                    evadeRechargeReduction += 1f * rank;
                     break;
                 case TalentDatabase.Wisdom:
                     xpPercent += 5f * rank;
@@ -61,7 +61,7 @@ public static class TalentStats
             bonusDamage,
             bonusHealth,
             bonusMana,
-            bonusStamina,
+            evadeRechargeReduction,
             1f + xpPercent / 100f,
             1f + speedPercent / 100f
         );

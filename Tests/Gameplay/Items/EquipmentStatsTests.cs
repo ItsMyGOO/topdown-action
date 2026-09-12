@@ -10,7 +10,6 @@ public sealed class EquipmentStatsTests
         var summary = EquipmentStats.Summarize(new EquipmentModel());
 
         Assert.Equal(0f, summary.MaxManaBonus);
-        Assert.Equal(0f, summary.MaxStaminaBonus);
         Assert.Equal(1f, summary.XpMultiplier);
     }
 
@@ -35,7 +34,7 @@ public sealed class EquipmentStatsTests
                 4,
                 [
                     new AffixLine(AffixStat.BonusMaxMana, 5f),
-                    new AffixLine(AffixStat.BonusMaxStamina, 15f),
+                    new AffixLine(AffixStat.BonusArmor, 15f),
                 ]
             )
         );
@@ -52,7 +51,6 @@ public sealed class EquipmentStatsTests
         var summary = EquipmentStats.Summarize(equipment);
 
         Assert.Equal(15f, summary.MaxManaBonus);
-        Assert.Equal(15f, summary.MaxStaminaBonus);
         Assert.Equal(1.2f, summary.XpMultiplier);
     }
 
@@ -66,14 +64,14 @@ public sealed class EquipmentStatsTests
                 ItemSlot.Gloves,
                 ItemRarity.Common,
                 1,
-                [new AffixLine(AffixStat.BonusMaxStamina, 8f)]
+                [new AffixLine(AffixStat.BonusMaxMana, 8f)]
             )
         );
 
         var summary = EquipmentStats.Summarize(equipment);
 
-        Assert.Equal(0f, summary.MaxManaBonus);
-        Assert.Equal(8f, summary.MaxStaminaBonus);
+        Assert.Equal(8f, summary.MaxManaBonus);
+        Assert.Equal(1, summary.Armor); // 手套自身 Power 1 计入护甲。
     }
 
     [Fact]
