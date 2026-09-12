@@ -2,6 +2,7 @@ using GodotGameTemplate.Gameplay.Items;
 using GodotGameTemplate.Gameplay.Progression;
 using GodotGameTemplate.Gameplay.Progression.Classes;
 using GodotGameTemplate.Gameplay.Progression.Talents;
+using GodotGameTemplate.Gameplay.Progression.Paragon;
 using GodotGameTemplate.Gameplay.Progression.Tiers;
 using GodotGameTemplate.Gameplay.Save;
 
@@ -515,5 +516,51 @@ public sealed class GameSessionSaveTests
         );
 
         Assert.Empty(stash.Items);
+    }
+
+    [Fact]
+    public void SaveDataMapper_Paragon_RoundTrip()
+    {
+        var paragon = new ParagonModel();
+        paragon.Allocate(ParagonCategory.Brutality, 20);
+        paragon.Allocate(ParagonCategory.Brutality, 20);
+
+        var data = SaveDataMapper.FromState(
+            0,
+            new InventoryModel().Items,
+            new EquipmentModel(),
+            paragon: paragon
+        );
+        var fresh = new ParagonModel();
+
+        SaveDataMapper.ApplyToState(
+            data,
+            new InventoryModel(),
+            new EquipmentModel(),
+            out _,
+            out _,
+            paragon: fresh
+        );
+
+        Assert.Equal(2, fresh.Ranks[ParagonCategory.Brutality]);
+    }
+
+    [Fact]
+    public void SaveDataMapper_LegacySaveWithoutParagon_YieldsEmpty()
+    {
+        var data = new SaveData();
+        var paragon = new ParagonModel();
+        paragon.Allocate(ParagonCategory.Brutality, 20);
+
+        SaveDataMapper.ApplyToState(
+            data,
+            new InventoryModel(),
+            new EquipmentModel(),
+            out _,
+            out _,
+            paragon: paragon
+        );
+
+        Assert.Empty(paragon.Ranks);
     }
 }

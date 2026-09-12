@@ -3,6 +3,7 @@ using System.Linq;
 using GodotGameTemplate.Gameplay.Items;
 using GodotGameTemplate.Gameplay.Progression;
 using GodotGameTemplate.Gameplay.Progression.Classes;
+using GodotGameTemplate.Gameplay.Progression.Paragon;
 using GodotGameTemplate.Gameplay.Progression.Talents;
 using GodotGameTemplate.Gameplay.Progression.Tiers;
 
@@ -59,6 +60,11 @@ public sealed class SaveData
     /// 仓库物品；旧存档缺省为空。
     /// </summary>
     public List<SaveItemInstanceData> StashItems { get; set; } = [];
+
+    /// <summary>
+    /// Paragon 分配；旧存档缺省为空。
+    /// </summary>
+    public List<SaveParagonData> Paragon { get; set; } = [];
 
     public List<SaveItemInstanceData> InventoryItems { get; set; } = [];
 
@@ -128,6 +134,16 @@ public sealed class SaveItemInstanceData
 /// <summary>
 /// 装备槽位 DTO（八槽；旧存档缺省字段为 null → 未穿戴）。
 /// </summary>
+/// <summary>
+/// 可序列化的 Paragon 分配 DTO。
+/// </summary>
+public sealed class SaveParagonData
+{
+    public ParagonCategory Category { get; set; }
+
+    public int Rank { get; set; }
+}
+
 public sealed class SaveEquipmentSlotsData
 {
     public SaveItemInstanceData? Weapon { get; set; }
@@ -161,7 +177,8 @@ public static class SaveDataMapper
         PotionChargesModel? potions = null,
         string? classId = null,
         int worldTier = 0,
-        IEnumerable<ItemInstance>? stashItems = null
+        IEnumerable<ItemInstance>? stashItems = null,
+        ParagonModel? paragon = null
     )
     {
         return new SaveData
@@ -176,6 +193,17 @@ public static class SaveDataMapper
                 stashItems == null
                     ? []
                     : [.. stashItems.Select(SaveItemInstanceData.FromItemInstance)],
+            Paragon =
+                paragon == null
+                    ? []
+                    :
+                    [
+                        .. paragon.Ranks.Select(pair => new SaveParagonData
+                        {
+                            Category = pair.Key,
+                            Rank = pair.Value,
+                        }),
+                    ],
             Talents =
                 talents == null
                     ? []
@@ -223,13 +251,18 @@ public static class SaveDataMapper
         LevelingModel? leveling = null,
         TalentModel? talents = null,
         PotionChargesModel? potions = null,
-        InventoryModel? stash = null
+        InventoryModel? stash = null,
+        ParagonModel? paragon = null
     )
     {
         classId = string.IsNullOrEmpty(data.ClassId) ? ClassDatabase.DefaultClassId : data.ClassId;
         worldTier = WorldTierDatabase.Get(data.WorldTier).Tier;
 
         stash?.ReplaceItems(data.StashItems.Select(item => item.ToItemInstance()));
+
+        paragon?.Restore(
+            data.Paragon.Select(entry => (entry.Category, entry.Rank))
+        );
 
         inventory.ReplaceItems(data.InventoryItems.Select(item => item.ToItemInstance()));
 

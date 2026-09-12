@@ -2,6 +2,7 @@ using Godot;
 using GodotGameTemplate.Gameplay.Items;
 using GodotGameTemplate.Gameplay.Progression;
 using GodotGameTemplate.Gameplay.Progression.Classes;
+using GodotGameTemplate.Gameplay.Progression.Paragon;
 using GodotGameTemplate.Gameplay.Progression.Talents;
 using GodotGameTemplate.Gameplay.Progression.Tiers;
 using GodotGameTemplate.Gameplay.Save;
@@ -33,6 +34,27 @@ public partial class GameSession : Node
     /// 城镇仓库（比背包更大的存储，跨场景持久）。
     /// </summary>
     public InventoryModel Stash { get; } = new() { Capacity = 40 };
+
+    public ParagonModel Paragon { get; } = new();
+
+    /// <summary>
+    /// 开始新游戏：重置全部进度并写入职业（不写存档，首存由玩家操作触发）。
+    /// </summary>
+    public void NewGame(string classId)
+    {
+        ClassId = SessionReset.NewGame(
+            Inventory,
+            Equipment,
+            Stash,
+            Leveling,
+            Talents,
+            Paragon,
+            Potions,
+            value => Gold = value,
+            value => WorldTier = value,
+            classId
+        );
+    }
 
     public string ClassId { get; set; } = ClassDatabase.DefaultClassId;
 
@@ -76,7 +98,8 @@ public partial class GameSession : Node
             Potions,
             ClassId,
             WorldTier,
-            Stash.Items
+            Stash.Items,
+            Paragon
         );
     }
 
@@ -91,7 +114,8 @@ public partial class GameSession : Node
             Leveling,
             Talents,
             Potions,
-            Stash
+            Stash,
+            Paragon
         );
         ClassId = classId;
         WorldTier = worldTier;
