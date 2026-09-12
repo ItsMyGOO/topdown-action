@@ -34,6 +34,7 @@ public partial class Hud : CanvasLayer
     private Label _skill4Label = default!;
     private InventoryPanel _inventoryPanel = default!;
     private TalentPanel _talentPanel = default!;
+    private GodotGameTemplate.Game.UI.Paragon.ParagonPanel _paragonPanel = default!;
 
     private PlayerController? _player;
 
@@ -60,6 +61,9 @@ public partial class Hud : CanvasLayer
         _toastLabel = GetNode<Label>("Margin/VBox/ToastLabel");
         _inventoryPanel = GetNode<InventoryPanel>("Margin/VBox/InventoryPanel");
         _talentPanel = GetNode<TalentPanel>("Margin/VBox/TalentPanel");
+        _paragonPanel = GetNode<GodotGameTemplate.Game.UI.Paragon.ParagonPanel>(
+            "Margin/VBox/ParagonPanel"
+        );
 
         // 触屏最小可用：Secondary 选点时提供确认/取消按钮。
         _confirmButton.ButtonDown += () => _player?.TouchInput.SetConfirmPressed(true);
@@ -91,6 +95,15 @@ public partial class Hud : CanvasLayer
             if (_talentPanel.Visible)
             {
                 _talentPanel.Refresh();
+            }
+        }
+
+        if (Input.IsActionJustPressed("open_paragon"))
+        {
+            _paragonPanel.Visible = !_paragonPanel.Visible;
+            if (_paragonPanel.Visible)
+            {
+                _paragonPanel.Refresh();
             }
         }
     }

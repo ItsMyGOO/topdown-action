@@ -260,9 +260,7 @@ public static class SaveDataMapper
 
         stash?.ReplaceItems(data.StashItems.Select(item => item.ToItemInstance()));
 
-        paragon?.Restore(
-            data.Paragon.Select(entry => (entry.Category, entry.Rank))
-        );
+        paragon?.Restore(data.Paragon.Select(entry => (entry.Category, entry.Rank)));
 
         inventory.ReplaceItems(data.InventoryItems.Select(item => item.ToItemInstance()));
 

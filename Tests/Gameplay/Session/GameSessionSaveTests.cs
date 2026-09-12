@@ -1,8 +1,8 @@
 using GodotGameTemplate.Gameplay.Items;
 using GodotGameTemplate.Gameplay.Progression;
 using GodotGameTemplate.Gameplay.Progression.Classes;
-using GodotGameTemplate.Gameplay.Progression.Talents;
 using GodotGameTemplate.Gameplay.Progression.Paragon;
+using GodotGameTemplate.Gameplay.Progression.Talents;
 using GodotGameTemplate.Gameplay.Progression.Tiers;
 using GodotGameTemplate.Gameplay.Save;
 

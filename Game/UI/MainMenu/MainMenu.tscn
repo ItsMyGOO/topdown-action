@@ -1,0 +1,46 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://Game/UI/MainMenu/MainMenu.cs" id="1_menu"]
+
+[node name="MainMenu" type="Control"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+script = ExtResource("1_menu")
+
+[node name="Center" type="VBoxContainer" parent="."]
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -160
+offset_top = -140
+offset_right = 160
+offset_bottom = 140
+
+[node name="TitleLabel" type="Label" parent="Center"]
+text = "TOP-DOWN PIXEL ACTION"
+horizontal_alignment = 1
+
+[node name="Spacer" type="Control" parent="Center"]
+custom_minimum_size = Vector2(0, 24)
+
+[node name="NewGameButton" type="Button" parent="Center"]
+text = "开始新游戏"
+
+[node name="ClassBox" type="VBoxContainer" parent="Center"]
+visible = false
+
+[node name="BarbarianButton" type="Button" parent="Center/ClassBox"]
+text = "野蛮人 — 近战厚血高伤"
+
+[node name="SorcererButton" type="Button" parent="Center/ClassBox"]
+text = "法师 — 远程法术脆皮"
+
+[node name="RogueButton" type="Button" parent="Center/ClassBox"]
+text = "游侠 — 敏捷均衡机动"
+
+[node name="ContinueButton" type="Button" parent="Center"]
+text = "继续游戏"
+
+[node name="QuitButton" type="Button" parent="Center"]
+text = "退出"

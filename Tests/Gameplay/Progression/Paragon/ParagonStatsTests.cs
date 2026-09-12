@@ -19,8 +19,7 @@ public sealed class ParagonStatsTests
     public void Aggregate_AppliesEachCategoryPerRank()
     {
         var paragon = new ParagonModel();
-        paragon.Restore(
-        [
+        paragon.Restore([
             (ParagonCategory.Brutality, 5),
             (ParagonCategory.Vitality, 4),
             (ParagonCategory.Cunning, 10),

@@ -7,6 +7,7 @@ using GodotGameTemplate.Gameplay.Common.Pixel;
 using GodotGameTemplate.Gameplay.Enemies;
 using GodotGameTemplate.Gameplay.Items;
 using GodotGameTemplate.Gameplay.Player;
+using GodotGameTemplate.Gameplay.Progression.Paragon;
 using GodotGameTemplate.Gameplay.Progression.Talents;
 using GodotGameTemplate.Gameplay.Progression.Tiers;
 using GodotGameTemplate.Gameplay.Session;

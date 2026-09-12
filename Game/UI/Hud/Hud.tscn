@@ -1,9 +1,10 @@
-[gd_scene load_steps=5 format=3]
+[gd_scene load_steps=6 format=3]
 
 [ext_resource type="Script" path="res://Game/UI/Hud/Hud.cs" id="1_hud_cs"]
 [ext_resource type="PackedScene" path="res://Game/UI/Inventory/InventoryPanel.tscn" id="2_inventory_panel"]
 [ext_resource type="PackedScene" path="res://Game/UI/Talents/TalentPanel.tscn" id="3_talent_panel"]
 [ext_resource type="PackedScene" path="res://Game/UI/Stash/StashPanel.tscn" id="4_stash_panel"]
+[ext_resource type="PackedScene" path="res://Game/UI/Paragon/ParagonPanel.tscn" id="5_paragon_panel"]
 
 [node name="Hud" type="CanvasLayer"]
 script = ExtResource("1_hud_cs")
@@ -84,4 +85,7 @@ visible = false
 visible = false
 
 [node name="StashPanel" parent="Margin/VBox" instance=ExtResource("4_stash_panel")]
+visible = false
+
+[node name="ParagonPanel" parent="Margin/VBox" instance=ExtResource("5_paragon_panel")]
 visible = false

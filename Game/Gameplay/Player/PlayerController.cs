@@ -16,6 +16,7 @@ using GodotGameTemplate.Gameplay.Navigation;
 using GodotGameTemplate.Gameplay.Player.States;
 using GodotGameTemplate.Gameplay.Progression;
 using GodotGameTemplate.Gameplay.Progression.Classes;
+using GodotGameTemplate.Gameplay.Progression.Paragon;
 using GodotGameTemplate.Gameplay.Progression.Talents;
 using GodotGameTemplate.Gameplay.Session;
 using GodotGameTemplate.Gameplay.Skills;
@@ -75,6 +76,7 @@ public partial class PlayerController : CharacterBody2D
     private double _skillToastRemainingSeconds;
     private bool _respawnQueued;
     private TalentStatSummary _talentStats = TalentStats.Aggregate(new TalentModel());
+    private ParagonStatSummary _paragonStats = ParagonStats.Aggregate(new ParagonModel());
 
     public string SkillToastMessage =>
         _skillToastRemainingSeconds > 0d ? _skillToastMessage : string.Empty;
@@ -126,6 +128,11 @@ public partial class PlayerController : CharacterBody2D
     /// 城镇仓库（来自会话，供仓库面板读写）。
     /// </summary>
     public InventoryModel Stash => _session.Stash;
+
+    /// <summary>
+    /// Paragon 模型（来自会话，供面板读写）。
+    /// </summary>
+    public ParagonModel SessionParagon => _session.Paragon;
 
     /// <summary>
     /// 立即写存档（仓库等操作后调用）。
@@ -473,7 +480,7 @@ public partial class PlayerController : CharacterBody2D
             (stats.MaxManaBonus + _talentStats.BonusMaxMana) * classDef.ManaMultiplier
             + leveling.DesiredManaMaxBase * (classDef.ManaMultiplier - 1f);
         leveling.ExternalHealthBonus =
-            _talentStats.BonusMaxHealth * classDef.HealthMultiplier
+            (_talentStats.BonusMaxHealth + _paragonStats.BonusMaxHealth) * classDef.HealthMultiplier
             + leveling.DesiredHealthMaxBase * (classDef.HealthMultiplier - 1f);
         _context.Evade.RechargeSeconds = MathF.Max(
             1.5f,
@@ -503,6 +510,7 @@ public partial class PlayerController : CharacterBody2D
     private void RefreshTalentStats()
     {
         _talentStats = TalentStats.Aggregate(_session.Talents);
+        _paragonStats = ParagonStats.Aggregate(_session.Paragon);
     }
 
     /// <summary>
