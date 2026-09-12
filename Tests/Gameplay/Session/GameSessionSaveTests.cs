@@ -457,4 +457,54 @@ public sealed class GameSessionSaveTests
 
         Assert.Equal(3, data.WorldTier);
     }
+
+    [Fact]
+    public void SaveDataMapper_StashItems_RoundTrip()
+    {
+        var stash = new InventoryModel();
+        stash.TryAdd(
+            new ItemInstance(
+                "stashed_helm",
+                ItemSlot.Helmet,
+                ItemRarity.Rare,
+                4,
+                [new AffixLine(AffixStat.BonusMaxMana, 10f)]
+            )
+        );
+        var inventory = new InventoryModel();
+        var equipment = new EquipmentModel();
+
+        var data = SaveDataMapper.FromState(
+            0,
+            inventory.Items,
+            equipment,
+            stashItems: stash.Items
+        );
+        var freshStash = new InventoryModel();
+
+        SaveDataMapper.ApplyToState(data, new InventoryModel(), new EquipmentModel(), out _, stash: freshStash);
+
+        Assert.Equal(
+            new ItemInstance(
+                "stashed_helm",
+                ItemSlot.Helmet,
+                ItemRarity.Rare,
+                4,
+                [new AffixLine(AffixStat.BonusMaxMana, 10f)]
+            ),
+            freshStash.Items.Single()
+        );
+    }
+
+    [Fact]
+    public void SaveDataMapper_LegacySaveWithoutStash_YieldsEmptyStash()
+    {
+        var data = new SaveData();
+        var stash = new InventoryModel();
+        stash.TryAdd(new ItemInstance("old", ItemSlot.Weapon, ItemRarity.Common, 1));
+
+        SaveDataMapper.ApplyToState(data, new InventoryModel(), new EquipmentModel(), out _, stash: stash);
+
+        Assert.Empty(stash.Items);
+    }
 }

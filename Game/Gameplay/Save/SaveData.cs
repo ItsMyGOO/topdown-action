@@ -55,6 +55,11 @@ public sealed class SaveData
     /// </summary>
     public int WorldTier { get; set; }
 
+    /// <summary>
+    /// 仓库物品；旧存档缺省为空。
+    /// </summary>
+    public List<SaveItemInstanceData> StashItems { get; set; } = [];
+
     public List<SaveItemInstanceData> InventoryItems { get; set; } = [];
 
     public SaveEquipmentSlotsData EquipmentSlots { get; set; } = new();
@@ -155,7 +160,8 @@ public static class SaveDataMapper
         TalentModel? talents = null,
         PotionChargesModel? potions = null,
         string? classId = null,
-        int worldTier = 0
+        int worldTier = 0,
+        IEnumerable<ItemInstance>? stashItems = null
     )
     {
         return new SaveData
@@ -166,6 +172,9 @@ public static class SaveDataMapper
             Potions = potions?.Available ?? 0,
             ClassId = classId ?? string.Empty,
             WorldTier = WorldTierDatabase.Get(worldTier).Tier,
+            StashItems = stashItems == null
+                ? []
+                : [.. stashItems.Select(SaveItemInstanceData.FromItemInstance)],
             Talents =
                 talents == null
                     ? []
@@ -212,11 +221,14 @@ public static class SaveDataMapper
         out int worldTier,
         LevelingModel? leveling = null,
         TalentModel? talents = null,
-        PotionChargesModel? potions = null
+        PotionChargesModel? potions = null,
+        InventoryModel? stash = null
     )
     {
         classId = string.IsNullOrEmpty(data.ClassId) ? ClassDatabase.DefaultClassId : data.ClassId;
         worldTier = WorldTierDatabase.Get(data.WorldTier).Tier;
+
+        stash?.ReplaceItems(data.StashItems.Select(item => item.ToItemInstance()));
 
         inventory.ReplaceItems(data.InventoryItems.Select(item => item.ToItemInstance()));
 
