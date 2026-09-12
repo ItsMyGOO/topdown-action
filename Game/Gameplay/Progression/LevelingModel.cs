@@ -86,16 +86,24 @@ public sealed class LevelingModel
     public int XpToNextLevel => BaseXpPerLevel * Level;
 
     /// <summary>
+    /// 期望最大法力的「基准部分」（基准 + 等级加成，不含外部加成），供职业倍率换算。
+    /// </summary>
+    public float DesiredManaMaxBase => BaseManaMax + BonusManaPerLevel * (Level - 1);
+
+    /// <summary>
     /// 期望最大法力（基准 + 等级加成 + 外部加成），供结算方判断是否需要重新应用。
     /// </summary>
-    public float DesiredManaMax =>
-        BaseManaMax + BonusManaPerLevel * (Level - 1) + ExternalManaBonus;
+    public float DesiredManaMax => DesiredManaMaxBase + ExternalManaBonus;
+
+    /// <summary>
+    /// 期望最大生命的「基准部分」（基准 + 等级加成，不含外部加成）。
+    /// </summary>
+    public float DesiredHealthMaxBase => BaseHealthMax + BonusHealthPerLevel * (Level - 1);
 
     /// <summary>
     /// 期望最大生命（基准 + 等级加成 + 外部加成）。
     /// </summary>
-    public float DesiredHealthMax =>
-        BaseHealthMax + BonusHealthPerLevel * (Level - 1) + ExternalHealthBonus;
+    public float DesiredHealthMax => DesiredHealthMaxBase + ExternalHealthBonus;
 
     /// <summary>
     /// 死亡惩罚：按比例损失当前等级内已积累的经验（钳 0，永不掉级）。

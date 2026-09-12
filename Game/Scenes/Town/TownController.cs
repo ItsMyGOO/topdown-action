@@ -2,6 +2,7 @@ using System.Linq;
 using Godot;
 using GodotGameTemplate.Gameplay.Items;
 using GodotGameTemplate.Gameplay.Player;
+using GodotGameTemplate.Gameplay.Progression.Classes;
 using GodotGameTemplate.Gameplay.Session;
 
 namespace GodotGameTemplate.Game.Scenes.Town;
@@ -17,6 +18,7 @@ public partial class TownController : Node2D
 
     private PlayerController? _player;
     private Area2D? _vendorArea;
+    private Area2D? _classShrine;
     private Area2D? _portalToWorld;
     private GameSession? _session;
 
@@ -24,6 +26,7 @@ public partial class TownController : Node2D
     {
         _player = GetNodeOrNull<PlayerController>("YSort/Player");
         _vendorArea = GetNodeOrNull<Area2D>("YSort/Vendor");
+        _classShrine = GetNodeOrNull<Area2D>("YSort/ClassShrine");
         _portalToWorld = GetNodeOrNull<Area2D>("YSort/PortalToWorld");
         _session = GetNodeOrNull<GameSession>("/root/GameSession");
         _session?.Potions.Refill();
@@ -45,6 +48,12 @@ public partial class TownController : Node2D
         {
             _session?.Save();
             GetTree().ChangeSceneToFile(WorldScenePath);
+            return;
+        }
+
+        if (_classShrine != null && IsPlayerInsideArea(_player, _classShrine))
+        {
+            CycleClass();
             return;
         }
 
@@ -84,6 +93,21 @@ public partial class TownController : Node2D
             ItemRarity.Rare => basePrice * 2,
             _ => basePrice,
         };
+    }
+
+    /// <summary>
+    /// 职业石像：循环切换职业（单机调试语义），立即存档使选择持久化。
+    /// </summary>
+    private void CycleClass()
+    {
+        var catalog = ClassDatabase.Catalog;
+        var currentIndex = catalog
+            .Select((definition, index) => (definition, index))
+            .First(pair => pair.definition.Id == _session.ClassId)
+            .index;
+
+        _session.ClassId = catalog[(currentIndex + 1) % catalog.Count].Id;
+        _session.Save();
     }
 
     private static bool IsPlayerInsideArea(PlayerController player, Area2D area)

@@ -12,6 +12,7 @@ namespace GodotGameTemplate.Game.UI.Hud;
 /// </summary>
 public partial class Hud : CanvasLayer
 {
+    private Label _classLabel = default!;
     private Label _lifeLabel = default!;
     private Label _evadeLabel = default!;
     private Label _potionLabel = default!;
@@ -36,6 +37,7 @@ public partial class Hud : CanvasLayer
 
     public override void _Ready()
     {
+        _classLabel = GetNode<Label>("Margin/VBox/ClassLabel");
         _lifeLabel = GetNode<Label>("Margin/VBox/LifeLabel");
         _evadeLabel = GetNode<Label>("Margin/VBox/EvadeLabel");
         _potionLabel = GetNode<Label>("Margin/VBox/PotionLabel");
@@ -94,6 +96,7 @@ public partial class Hud : CanvasLayer
     {
         if (_player == null)
         {
+            _classLabel.Text = "职业: --";
             _lifeLabel.Text = "生命: --/--";
             _evadeLabel.Text = "闪避: --";
             _potionLabel.Text = "药水: --";
@@ -106,6 +109,7 @@ public partial class Hud : CanvasLayer
         var health = _player.ActorContext.Health;
         var evade = _player.ActorContext.Evade;
         var mana = _player.ActorContext.Mana;
+        _classLabel.Text = $"职业: {_player.Class.Name}";
         _lifeLabel.Text = $"生命: {health.Current:0}/{health.Max:0}";
         _evadeLabel.Text = $"闪避: {evade.Available}/{evade.MaxCharges}";
         var potions = _player.Potions;

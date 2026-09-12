@@ -15,6 +15,7 @@ using GodotGameTemplate.Gameplay.Items;
 using GodotGameTemplate.Gameplay.Navigation;
 using GodotGameTemplate.Gameplay.Player.States;
 using GodotGameTemplate.Gameplay.Progression;
+using GodotGameTemplate.Gameplay.Progression.Classes;
 using GodotGameTemplate.Gameplay.Progression.Talents;
 using GodotGameTemplate.Gameplay.Session;
 using GodotGameTemplate.Gameplay.Skills;
@@ -79,9 +80,22 @@ public partial class PlayerController : CharacterBody2D
         _skillToastRemainingSeconds > 0d ? _skillToastMessage : string.Empty;
 
     /// <summary>
-    /// 当前攻击伤害（武器 Power + 力量天赋；未持武器为基础 1）。
+    /// 当前职业定义（来自会话）。
     /// </summary>
-    public int AttackDamage => (Equipment.Weapon?.Power ?? 1) + _talentStats.BonusDamage;
+    public ClassDefinition Class => ClassDatabase.Get(_session.ClassId);
+
+    /// <summary>
+    /// 当前攻击伤害（（武器 Power + 力量天赋）× 职业倍率；未持武器为基础 1）。
+    /// </summary>
+    public int AttackDamage =>
+        Math.Max(
+            1,
+            (int)
+                Math.Round(
+                    ((Equipment.Weapon?.Power ?? 1) + _talentStats.BonusDamage)
+                        * Class.DamageMultiplier
+                )
+        );
 
     /// <summary>
     /// 当前护甲（非武器已装备槽 Power 之和），减免受到的伤害。
@@ -170,7 +184,8 @@ public partial class PlayerController : CharacterBody2D
         ClickToMove ??= GetNodeOrNull<ClickToMoveController>("ClickToMove");
         if (ClickToMove != null)
         {
-            ClickToMove.MaxSpeed = Config.MoveSpeed * _talentStats.MoveSpeedMultiplier;
+            ClickToMove.MaxSpeed =
+                Config.MoveSpeed * _talentStats.MoveSpeedMultiplier * Class.MoveSpeedMultiplier;
         }
 
         // Skill scenes
@@ -185,7 +200,7 @@ public partial class PlayerController : CharacterBody2D
     {
         // 注意：这里的委托会捕获 this，因此必须在运行时访问（Enter/Update）时才会使用到场景树数据。
         _skillCastState = new PlayerSkillCastState(
-            getSkill: slot => SkillDatabase.DefaultBySlot[slot],
+            getSkill: slot => SkillDatabase.SkillsFor(_session.ClassId)[slot],
             spawnEffect: SpawnSkillEffect
         );
 
@@ -195,8 +210,9 @@ public partial class PlayerController : CharacterBody2D
             getConfirmPressed: () => _currentCommand.ConfirmPressed,
             getCancelPressed: () => _currentCommand.CancelPressed,
             getPlayerPosition: () => GlobalPosition,
-            getMaxRange: () => SkillDatabase.DefaultBySlot[SkillSlot.Secondary].Range,
-            getRadius: () => SkillDatabase.DefaultBySlot[SkillSlot.Secondary].AoeRadius,
+            getMaxRange: () => SkillDatabase.SkillsFor(_session.ClassId)[SkillSlot.Secondary].Range,
+            getRadius: () =>
+                SkillDatabase.SkillsFor(_session.ClassId)[SkillSlot.Secondary].AoeRadius,
             getOrCreateIndicator: GetOrCreateAoeIndicator
         );
     }
@@ -223,7 +239,8 @@ public partial class PlayerController : CharacterBody2D
 
         if (ClickToMove != null)
         {
-            ClickToMove.MaxSpeed = Config.MoveSpeed * _talentStats.MoveSpeedMultiplier;
+            ClickToMove.MaxSpeed =
+                Config.MoveSpeed * _talentStats.MoveSpeedMultiplier * Class.MoveSpeedMultiplier;
         }
 
         // 瞄准期间，左键用于确认释放，不再用于拾取/选中/点击移动。
@@ -378,7 +395,7 @@ public partial class PlayerController : CharacterBody2D
 
         var decision = _skillOrchestrator.Evaluate(
             _currentCommand,
-            SkillDatabase.DefaultBySlot,
+            SkillDatabase.SkillsFor(_session.ClassId),
             _context.Mana,
             _context.Cooldowns,
             isBusy
@@ -436,8 +453,13 @@ public partial class PlayerController : CharacterBody2D
         RefreshTalentStats();
 
         var stats = EquipmentStats.Summarize(_session.Equipment);
-        leveling.ExternalManaBonus = stats.MaxManaBonus + _talentStats.BonusMaxMana;
-        leveling.ExternalHealthBonus = _talentStats.BonusMaxHealth;
+        var classDef = Class;
+        leveling.ExternalManaBonus =
+            (stats.MaxManaBonus + _talentStats.BonusMaxMana) * classDef.ManaMultiplier
+            + leveling.DesiredManaMaxBase * (classDef.ManaMultiplier - 1f);
+        leveling.ExternalHealthBonus =
+            _talentStats.BonusMaxHealth * classDef.HealthMultiplier
+            + leveling.DesiredHealthMaxBase * (classDef.HealthMultiplier - 1f);
         _context.Evade.RechargeSeconds = MathF.Max(
             1.5f,
             _context.Evade.RechargeSecondsBase - _talentStats.EvadeRechargeSecondsReduction
@@ -520,7 +542,7 @@ public partial class PlayerController : CharacterBody2D
 
     private void StartInstantCast(SkillSlot slot)
     {
-        var def = SkillDatabase.DefaultBySlot[slot];
+        var def = SkillDatabase.SkillsFor(_session.ClassId)[slot];
         var direction = ResolveCastDirection();
         Vector2? point = null;
 

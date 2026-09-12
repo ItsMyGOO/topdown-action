@@ -65,7 +65,8 @@ public partial class GameSession : Node
             Equipment,
             Leveling,
             Talents,
-            Potions
+            Potions,
+            ClassId
         );
     }
 
