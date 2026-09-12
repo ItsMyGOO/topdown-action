@@ -1,8 +1,8 @@
 using GodotGameTemplate.Gameplay.Items;
 using GodotGameTemplate.Gameplay.Progression;
 using GodotGameTemplate.Gameplay.Progression.Classes;
-using GodotGameTemplate.Gameplay.Progression.Tiers;
 using GodotGameTemplate.Gameplay.Progression.Talents;
+using GodotGameTemplate.Gameplay.Progression.Tiers;
 using GodotGameTemplate.Gameplay.Save;
 
 namespace GodotGameTemplate.Tests.Gameplay.Session;
@@ -228,7 +228,14 @@ public sealed class GameSessionSaveTests
         var freshInventory = new InventoryModel();
         var freshLeveling = new LevelingModel();
 
-        SaveDataMapper.ApplyToState(data, freshInventory, freshEquipment, out _, out _, freshLeveling);
+        SaveDataMapper.ApplyToState(
+            data,
+            freshInventory,
+            freshEquipment,
+            out _,
+            out _,
+            freshLeveling
+        );
 
         Assert.Equal(helmet, freshEquipment.Get(ItemSlot.Helmet));
         Assert.Equal(
@@ -402,11 +409,22 @@ public sealed class GameSessionSaveTests
     [Fact]
     public void SaveDataMapper_WorldTier_RoundTrip()
     {
-        var data = SaveDataMapper.FromState(0, new InventoryModel().Items, new EquipmentModel(), worldTier: 3);
+        var data = SaveDataMapper.FromState(
+            0,
+            new InventoryModel().Items,
+            new EquipmentModel(),
+            worldTier: 3
+        );
 
         Assert.Equal(3, data.WorldTier);
 
-        SaveDataMapper.ApplyToState(data, new InventoryModel(), new EquipmentModel(), out _, out var tier);
+        SaveDataMapper.ApplyToState(
+            data,
+            new InventoryModel(),
+            new EquipmentModel(),
+            out _,
+            out var tier
+        );
 
         Assert.Equal(3, tier);
     }
@@ -416,7 +434,13 @@ public sealed class GameSessionSaveTests
     {
         var data = new SaveData();
 
-        SaveDataMapper.ApplyToState(data, new InventoryModel(), new EquipmentModel(), out _, out var tier);
+        SaveDataMapper.ApplyToState(
+            data,
+            new InventoryModel(),
+            new EquipmentModel(),
+            out _,
+            out var tier
+        );
 
         Assert.Equal(1, tier);
     }
@@ -424,7 +448,12 @@ public sealed class GameSessionSaveTests
     [Fact]
     public void SaveDataMapper_OutOfRangeWorldTier_Clamps()
     {
-        var data = SaveDataMapper.FromState(0, new InventoryModel().Items, new EquipmentModel(), worldTier: 42);
+        var data = SaveDataMapper.FromState(
+            0,
+            new InventoryModel().Items,
+            new EquipmentModel(),
+            worldTier: 42
+        );
 
         Assert.Equal(3, data.WorldTier);
     }

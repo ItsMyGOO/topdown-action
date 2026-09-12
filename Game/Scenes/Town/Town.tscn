@@ -13,6 +13,12 @@ size = Vector2(32, 32)
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_shrine"]
 size = Vector2(40, 40)
 
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_tiershrine"]
+size = Vector2(40, 40)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_dungeonportal"]
+size = Vector2(32, 32)
+
 [node name="Town" type="Node2D"]
 script = ExtResource("2_townctl")
 
@@ -41,6 +47,20 @@ monitoring = true
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="YSort/PortalToWorld"]
 shape = SubResource("RectangleShape2D_portal")
+
+[node name="PortalToDungeon" type="Area2D" parent="YSort" groups=["portal_to_dungeon"]]
+position = Vector2(96, 160)
+monitoring = true
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="YSort/PortalToDungeon"]
+shape = SubResource("RectangleShape2D_dungeonportal")
+
+[node name="TierShrine" type="Area2D" parent="YSort" groups=["tier_shrine"]]
+position = Vector2(288, 160)
+monitoring = true
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="YSort/TierShrine"]
+shape = SubResource("RectangleShape2D_tiershrine")
 
 [node name="Hud" parent="." instance=ExtResource("3_hud")]
 

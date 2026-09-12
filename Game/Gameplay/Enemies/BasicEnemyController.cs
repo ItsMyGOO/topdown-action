@@ -195,6 +195,17 @@ public partial class BasicEnemyController : CharacterBody2D, IHitReceiver, ITarg
     }
 
     /// <summary>
+    /// 应用世界等级缩放（与精英计划独立相乘）。
+    /// 必须在 <see cref="_Ready"/> 之后调用（世界根生成期）。
+    /// </summary>
+    public void ApplyWorldTier(float hpMultiplier, float damageMultiplier)
+    {
+        MaxHp = Mathf.Max(1, Mathf.RoundToInt(MaxHp * hpMultiplier));
+        Hp = MaxHp;
+        Damage = Mathf.Max(1, Mathf.RoundToInt(Damage * damageMultiplier));
+    }
+
+    /// <summary>
     /// 应用精英/Boss 强化计划：倍率写进属性，词缀与 Boss 做表现区分。
     /// 必须在 <see cref="_Ready"/> 之后调用（世界根生成期）。
     /// </summary>

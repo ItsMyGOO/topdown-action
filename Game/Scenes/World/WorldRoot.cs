@@ -8,6 +8,7 @@ using GodotGameTemplate.Gameplay.Enemies;
 using GodotGameTemplate.Gameplay.Items;
 using GodotGameTemplate.Gameplay.Player;
 using GodotGameTemplate.Gameplay.Progression.Talents;
+using GodotGameTemplate.Gameplay.Progression.Tiers;
 using GodotGameTemplate.Gameplay.Session;
 
 namespace GodotGameTemplate.Game.Scenes.World;
@@ -25,6 +26,15 @@ public partial class WorldRoot : Node2D
 
     [Export]
     public PackedScene? HealthOrbScene { get; set; }
+
+    /// <summary>
+    /// 地下城模式：运行时铺设敌人波次，杀光全部 Boss 后开启回城门。
+    /// </summary>
+    [Export]
+    public bool DungeonMode { get; set; }
+
+    [Export]
+    public float DungeonXpMultiplier { get; set; } = 1.5f;
 
     public GameFeatures Features { get; set; } = new();
 
@@ -47,13 +57,25 @@ public partial class WorldRoot : Node2D
     {
         BuildGround();
         _lootContainer = GetNodeOrNull("YSort") ?? this;
+
+        if (DungeonMode)
+        {
+            SpawnDungeonEnemies();
+        }
         LootPickupScene ??= GD.Load<PackedScene>("res://Game/Scenes/Items/LootPickup.tscn");
         HealthOrbScene ??= GD.Load<PackedScene>("res://Game/Scenes/Items/HealthOrb.tscn");
         _portalToTown = GetNodeOrNull<Area2D>("YSort/PortalToTown");
         _session = GetNodeOrNull<GameSession>("/root/GameSession");
 
+        _dungeonBossTotal = 0;
+        _dungeonBossesDown = 0;
+
+        var tier = WorldTierDatabase.Get(_session?.WorldTier ?? 1);
+
         foreach (var enemy in FindDescendantsOfType<BasicEnemyController>(_lootContainer))
         {
+            enemy.ApplyWorldTier(tier.EnemyHpMultiplier, tier.EnemyDamageMultiplier);
+
             var plan = enemy.IsBoss
                 ? EliteRoller.Boss()
                 : EliteRoller.TryRoll(EliteRoller.EliteChance, _eliteRandom);
@@ -63,6 +85,45 @@ public partial class WorldRoot : Node2D
             }
 
             enemy.Died += (pos, xpReward) => OnEnemyDied(enemy, pos, xpReward);
+
+            if (DungeonMode && enemy.IsBoss)
+            {
+                _dungeonBossTotal++;
+            }
+        }
+
+        _portalToTown = GetNodeOrNull<Area2D>("YSort/PortalToTown");
+        if (DungeonMode && _portalToTown != null)
+        {
+            _portalToTown.Visible = false;
+            _portalToTown.SetDeferred("monitoring", false);
+        }
+    }
+
+    private int _dungeonBossTotal;
+    private int _dungeonBossesDown;
+
+    /// <summary>
+    /// 地下城敌人铺设：网格排布 18 普通怪 + 3 Boss。
+    /// </summary>
+    private void SpawnDungeonEnemies()
+    {
+        var enemyScene = GD.Load<PackedScene>("res://Game/Scenes/Enemies/BasicEnemy.tscn");
+        var container = GetNodeOrNull("YSort") ?? this;
+
+        for (var i = 0; i < 18; i++)
+        {
+            var enemy = enemyScene.Instantiate<BasicEnemyController>();
+            enemy.Position = new Vector2(120f + (i % 6) * 70f, 60f + (i / 6) * 60f);
+            container.AddChild(enemy);
+        }
+
+        for (var i = 0; i < 3; i++)
+        {
+            var boss = enemyScene.Instantiate<BasicEnemyController>();
+            boss.IsBoss = true;
+            boss.Position = new Vector2(200f + i * 120f, 280f);
+            container.AddChild(boss);
         }
     }
 
@@ -128,7 +189,14 @@ public partial class WorldRoot : Node2D
         {
             var equipStats = EquipmentStats.Summarize(_session.Equipment);
             var talentStats = TalentStats.Aggregate(_session.Talents);
-            var xp = (int)(xpReward * equipStats.XpMultiplier * talentStats.XpMultiplier);
+            var tier = WorldTierDatabase.Get(_session.WorldTier);
+            var xp = (int)(
+                xpReward
+                * equipStats.XpMultiplier
+                * talentStats.XpMultiplier
+                * tier.XpMultiplier
+                * (DungeonMode ? DungeonXpMultiplier : 1f)
+            );
             _session.Leveling.AddXp(xp);
         }
 
@@ -138,7 +206,18 @@ public partial class WorldRoot : Node2D
         }
 
         var dropCount = plan?.DropCount ?? 1;
-        var rarityFloor = plan?.RarityFloor ?? ItemRarity.Common;
+        var tierFloor = WorldTierDatabase.Get(_session?.WorldTier ?? 1).DropRarityFloor;
+        var rarityFloor = (ItemRarity)
+            Math.Max((int)(plan?.RarityFloor ?? ItemRarity.Common), (int)tierFloor);
+
+        if (DungeonMode && enemy.IsBoss)
+        {
+            _dungeonBossesDown++;
+            if (_dungeonBossesDown >= _dungeonBossTotal)
+            {
+                CallDeferred(nameof(OpenDungeonExit));
+            }
+        }
 
         // 血球：普通怪 30%，精英必掉 1，Boss 2。
         var orbCount = plan switch
@@ -154,6 +233,20 @@ public partial class WorldRoot : Node2D
         // "Can't change this state while flushing queries."
         // 因此这里统一延后到空闲帧再生成掉落。
         CallDeferred(nameof(SpawnLootDeferred), pos, dropCount, (int)rarityFloor, orbCount);
+    }
+
+    /// <summary>
+    /// 地下城全部 Boss 死亡后开启回城门。
+    /// </summary>
+    private void OpenDungeonExit()
+    {
+        if (_portalToTown == null)
+        {
+            return;
+        }
+
+        _portalToTown.Visible = true;
+        _portalToTown.SetDeferred("monitoring", true);
     }
 
     private void SpawnLootDeferred(Vector2 pos, int dropCount, int rarityFloor, int orbCount)

@@ -3,6 +3,7 @@ using Godot;
 using GodotGameTemplate.Gameplay.Items;
 using GodotGameTemplate.Gameplay.Player;
 using GodotGameTemplate.Gameplay.Progression.Classes;
+using GodotGameTemplate.Gameplay.Progression.Tiers;
 using GodotGameTemplate.Gameplay.Session;
 
 namespace GodotGameTemplate.Game.Scenes.Town;
@@ -19,6 +20,8 @@ public partial class TownController : Node2D
     private PlayerController? _player;
     private Area2D? _vendorArea;
     private Area2D? _classShrine;
+    private Area2D? _tierShrine;
+    private Area2D? _portalToDungeon;
     private Area2D? _portalToWorld;
     private GameSession? _session;
 
@@ -27,6 +30,8 @@ public partial class TownController : Node2D
         _player = GetNodeOrNull<PlayerController>("YSort/Player");
         _vendorArea = GetNodeOrNull<Area2D>("YSort/Vendor");
         _classShrine = GetNodeOrNull<Area2D>("YSort/ClassShrine");
+        _tierShrine = GetNodeOrNull<Area2D>("YSort/TierShrine");
+        _portalToDungeon = GetNodeOrNull<Area2D>("YSort/PortalToDungeon");
         _portalToWorld = GetNodeOrNull<Area2D>("YSort/PortalToWorld");
         _session = GetNodeOrNull<GameSession>("/root/GameSession");
         _session?.Potions.Refill();
@@ -48,6 +53,19 @@ public partial class TownController : Node2D
         {
             _session?.Save();
             GetTree().ChangeSceneToFile(WorldScenePath);
+            return;
+        }
+
+        if (_portalToDungeon != null && IsPlayerInsideArea(_player, _portalToDungeon))
+        {
+            _session?.Save();
+            GetTree().ChangeSceneToFile("res://Game/Scenes/World/Dungeon.tscn");
+            return;
+        }
+
+        if (_tierShrine != null && IsPlayerInsideArea(_player, _tierShrine))
+        {
+            CycleWorldTier();
             return;
         }
 
@@ -93,6 +111,18 @@ public partial class TownController : Node2D
             ItemRarity.Rare => basePrice * 2,
             _ => basePrice,
         };
+    }
+
+    /// <summary>
+    /// 世界等级石像：循环 普通 → 噩梦 → 地狱，立即存档。
+    /// </summary>
+    private void CycleWorldTier()
+    {
+        var catalog = WorldTierDatabase.Catalog;
+        var current = WorldTierDatabase.Get(_session.WorldTier).Tier;
+
+        _session.WorldTier = catalog[current % catalog.Count].Tier;
+        _session.Save();
     }
 
     /// <summary>

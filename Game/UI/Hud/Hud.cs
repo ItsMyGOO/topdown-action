@@ -2,6 +2,7 @@ using Godot;
 using GodotGameTemplate.Game.UI.Inventory;
 using GodotGameTemplate.Game.UI.Talents;
 using GodotGameTemplate.Gameplay.Player;
+using GodotGameTemplate.Gameplay.Progression.Tiers;
 using GodotGameTemplate.Gameplay.Skills;
 using SkillSlot = GodotGameTemplate.Gameplay.Input.Commands.SkillSlot;
 
@@ -13,6 +14,7 @@ namespace GodotGameTemplate.Game.UI.Hud;
 public partial class Hud : CanvasLayer
 {
     private Label _classLabel = default!;
+    private Label _tierLabel = default!;
     private Label _lifeLabel = default!;
     private Label _evadeLabel = default!;
     private Label _potionLabel = default!;
@@ -38,6 +40,7 @@ public partial class Hud : CanvasLayer
     public override void _Ready()
     {
         _classLabel = GetNode<Label>("Margin/VBox/ClassLabel");
+        _tierLabel = GetNode<Label>("Margin/VBox/TierLabel");
         _lifeLabel = GetNode<Label>("Margin/VBox/LifeLabel");
         _evadeLabel = GetNode<Label>("Margin/VBox/EvadeLabel");
         _potionLabel = GetNode<Label>("Margin/VBox/PotionLabel");
@@ -97,6 +100,7 @@ public partial class Hud : CanvasLayer
         if (_player == null)
         {
             _classLabel.Text = "职业: --";
+            _tierLabel.Text = "世界等级: --";
             _lifeLabel.Text = "生命: --/--";
             _evadeLabel.Text = "闪避: --";
             _potionLabel.Text = "药水: --";
@@ -110,6 +114,14 @@ public partial class Hud : CanvasLayer
         var evade = _player.ActorContext.Evade;
         var mana = _player.ActorContext.Mana;
         _classLabel.Text = $"职业: {_player.Class.Name}";
+        var tier = WorldTierDatabase.Get(_player.SessionWorldTier);
+        _tierLabel.Text = $"世界等级: {tier.Name}";
+        _tierLabel.Modulate = tier.Tier switch
+        {
+            3 => new Color(1f, 0.35f, 0.35f),
+            2 => new Color(1f, 0.7f, 0.35f),
+            _ => Colors.White,
+        };
         _lifeLabel.Text = $"生命: {health.Current:0}/{health.Max:0}";
         _evadeLabel.Text = $"闪避: {evade.Available}/{evade.MaxCharges}";
         var potions = _player.Potions;

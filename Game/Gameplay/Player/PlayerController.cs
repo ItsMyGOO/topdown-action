@@ -117,6 +117,11 @@ public partial class PlayerController : CharacterBody2D
     /// </summary>
     public PotionChargesModel Potions => _session.Potions;
 
+    /// <summary>
+    /// 世界等级（来自会话，供 HUD 显示）。
+    /// </summary>
+    public int SessionWorldTier => _session.WorldTier;
+
     public GameFeatures Features { get; set; } = new();
 
     public InventoryModel Inventory => _session.Inventory;

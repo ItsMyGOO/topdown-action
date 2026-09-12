@@ -22,6 +22,9 @@ size_flags_vertical = 3
 [node name="ClassLabel" type="Label" parent="Margin/VBox"]
 text = "职业: --"
 
+[node name="TierLabel" type="Label" parent="Margin/VBox"]
+text = "世界等级: --"
+
 [node name="LifeLabel" type="Label" parent="Margin/VBox"]
 text = "生命: --/--"
 
