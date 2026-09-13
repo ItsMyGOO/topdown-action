@@ -114,3 +114,7 @@ skill_4={
 [rendering]
 
 textures/canvas_textures/default_texture_filter=0
+
+[editor_plugins]
+
+enabled=PackedStringArray("res://addons/phantom_camera/plugin.cfg")

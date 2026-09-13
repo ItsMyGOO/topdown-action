@@ -1,10 +1,12 @@
-[gd_scene load_steps=7 format=3]
+[gd_scene load_steps=9 format=3]
 
 [ext_resource type="Script" path="res://Game/Gameplay/Player/PlayerController.cs" id="1_a8o2x"]
 [ext_resource type="Script" path="res://Game/Gameplay/Player/PlayerView.cs" id="2_hi4c4"]
 [ext_resource type="Script" path="res://Game/Gameplay/Player/PlayerAttackHitbox.cs" id="3_ufeu5"]
 [ext_resource type="Script" path="res://Game/Gameplay/Navigation/ClickToMoveController.cs" id="4_navctl"]
 [ext_resource type="Texture2D" path="res://Game/Art/Pixel/player_sheet.png" id="5_sheet"]
+[ext_resource type="Script" path="res://addons/phantom_camera/scripts/phantom_camera/phantom_camera_2d.gd" id="6_pc2d"]
+[ext_resource type="Script" path="res://addons/phantom_camera/scripts/phantom_camera_host/phantom_camera_host.gd" id="7_pchost"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_c9bme"]
 radius = 8.0
@@ -28,13 +30,22 @@ vframes = 4
 
 [node name="Camera2D" type="Camera2D" parent="."]
 enabled = true
+position_smoothing_enabled = true
+position_smoothing_speed = 8.0
+
+[node name="PhantomCameraHost" type="Node" parent="Camera2D"]
+script = ExtResource("7_pchost")
+
+[node name="PhantomCamera2D" type="Node2D" parent="."]
+script = ExtResource("6_pc2d")
+priority = 1
 zoom = Vector2(2.5, 2.5)
 limit_left = 0
 limit_top = 0
 limit_right = 640
 limit_bottom = 380
-position_smoothing_enabled = true
-position_smoothing_speed = 8.0
+follow_damping = true
+follow_damping_value = 0.12
 
 [node name="NavigationAgent2D" type="NavigationAgent2D" parent="."]
 
