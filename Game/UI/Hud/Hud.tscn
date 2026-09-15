@@ -25,6 +25,8 @@ text = ""
 text = ""
 
 [node name="BottomBar" type="HBoxContainer" parent="."]
+anchor_left = 0.0
+anchor_right = 1.0
 anchor_top = 1.0
 anchor_bottom = 1.0
 offset_left = 0.0
@@ -33,6 +35,7 @@ offset_right = 0.0
 offset_bottom = -18.0
 grow_horizontal = 2
 grow_vertical = 0
+alignment = 1
 theme_override_constants/separation = 16
 
 [node name="HealthBox" type="VBoxContainer" parent="BottomBar"]
@@ -80,22 +83,28 @@ show_percentage = false
 mouse_filter = 2
 
 [node name="InteractPrompt" type="Label" parent="."]
+anchor_left = 0.0
+anchor_right = 1.0
 anchor_top = 1.0
 anchor_bottom = 1.0
 offset_top = -110.0
 offset_bottom = -90.0
 grow_horizontal = 2
 grow_vertical = 0
+horizontal_alignment = 1
 text = "按 E 交互"
 visible = false
 
 [node name="ToastLabel" type="Label" parent="."]
+anchor_left = 0.0
+anchor_right = 1.0
 anchor_top = 1.0
 anchor_bottom = 1.0
 offset_top = -140.0
 offset_bottom = -120.0
 grow_horizontal = 2
 grow_vertical = 0
+horizontal_alignment = 1
 text = ""
 visible = false
 
