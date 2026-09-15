@@ -11,10 +11,21 @@ public partial class ClickToMoveController : Node
     [Export]
     public NavigationAgent2D? Agent { get; set; }
 
+    /// <summary>
+    /// 视为到达目标的距离阈值。
+    /// </summary>
+    private const float ArrivalDistance = 8f;
+
     [Export]
     public float MaxSpeed { get; set; } = 120f;
 
     public Vector2 DesiredVelocity { get; private set; } = Vector2.Zero;
+
+    public override void _Ready()
+    {
+        // 场景中手写的 NodePath 导出可能不解析（无编辑器保存兜底），在此按固定路径解析。
+        Agent ??= GetNodeOrNull<NavigationAgent2D>("../NavigationAgent2D");
+    }
 
     public void SetDestination(Vector2 destination)
     {
@@ -50,15 +61,15 @@ public partial class ClickToMoveController : Node
             return;
         }
 
-        if (Agent.IsNavigationFinished())
+        var owner = GetParent<Node2D>();
+        if (owner == null)
         {
             DesiredVelocity = Vector2.Zero;
-            Agent.Velocity = Vector2.Zero;
             return;
         }
 
-        var owner = GetParent<Node2D>();
-        if (owner == null)
+        // 已到达目标：停止（Stop() 也是把目标设为自身来实现的）。
+        if (Agent.TargetPosition.DistanceTo(owner.GlobalPosition) <= ArrivalDistance)
         {
             DesiredVelocity = Vector2.Zero;
             Agent.Velocity = Vector2.Zero;
@@ -67,16 +78,15 @@ public partial class ClickToMoveController : Node
 
         var next = Agent.GetNextPathPosition();
         var dir = next - owner.GlobalPosition;
-        if (dir == Vector2.Zero)
+
+        if (dir.Length() <= ArrivalDistance)
         {
-            DesiredVelocity = Vector2.Zero;
-        }
-        else
-        {
-            DesiredVelocity = dir.Normalized() * MaxSpeed;
+            // 导航地图为空/无路径时下一路径点退化为当前位置：
+            // 兜底直线朝目标移动，保证无 NavigationRegion2D 的场景点击可走。
+            dir = Agent.TargetPosition - owner.GlobalPosition;
         }
 
-        // 将期望速度喂给 Agent（便于启用避障/速度约束等）。
+        DesiredVelocity = dir.Normalized() * MaxSpeed;
         Agent.Velocity = DesiredVelocity;
     }
 }

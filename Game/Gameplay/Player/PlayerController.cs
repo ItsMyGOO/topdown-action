@@ -142,6 +142,15 @@ public partial class PlayerController : CharacterBody2D
     /// </summary>
     public void SaveProgress() => _session.Save();
 
+    /// <summary>
+    /// 请求点击移动到指定世界坐标（供测试与触屏适配调用，等价于点击地面）。
+    /// </summary>
+    public void RequestClickMove(Vector2 destination)
+    {
+        _clickToMoveModel.SetDestination(destination);
+        ClickToMove?.SetDestination(destination);
+    }
+
     public GameFeatures Features { get; set; } = new();
 
     public InventoryModel Inventory => _session.Inventory;
