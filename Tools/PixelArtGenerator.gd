@@ -32,7 +32,64 @@ func _initialize() -> void:
 	_generate_enemy()
 	_generate_tileset()
 	_generate_orb()
+	_generate_markers()
 	quit(0)
+
+
+func _generate_markers() -> void:
+	# 传送门（蓝）：24x32 拱形
+	var portal := _new_image(24, 32)
+	for y in range(4, 32):
+		for x in range(24):
+			var cx := absf(x - 11.5)
+			var half := 3.0 + (y - 4) * 0.35
+			if cx <= half:
+				portal.set_pixel(x, y, Color8(70, 120, 235))
+			if cx > half - 1.4:
+				portal.set_pixel(x, y, Color8(30, 50, 120))
+	portal.set_pixel(11, 14, Color8(200, 225, 255))
+	portal.set_pixel(12, 18, Color8(200, 225, 255))
+	portal.save_png(OUT_DIR + "/portal.png")
+
+	# 地下城门（红）：同形红色
+	var dungeon := Image.create(24, 32, false, Image.FORMAT_RGBA8)
+	for y in range(4, 32):
+		for x in range(24):
+			var cx := absf(x - 11.5)
+			var half := 3.0 + (y - 4) * 0.35
+			if cx <= half:
+				dungeon.set_pixel(x, y, Color8(200, 60, 60))
+			if cx > half - 1.4:
+				dungeon.set_pixel(x, y, Color8(90, 24, 24))
+	dungeon.save_png(OUT_DIR + "/dungeon_portal.png")
+
+	# 职业石像（灰石碑）：20x28
+	var statue := Image.create(20, 28, false, Image.FORMAT_RGBA8)
+	for y in range(2, 28):
+		for x in range(4, 16):
+			statue.set_pixel(x, y, Color8(140, 140, 150))
+	_rect(statue, 6, 0, 13, 2, Color8(140, 140, 150))
+	_rect(statue, 2, 26, 17, 27, Color8(90, 90, 100))
+	_rect(statue, 8, 6, 11, 14, Color8(90, 90, 100))
+	statue.save_png(OUT_DIR + "/class_statue.png")
+
+	# 等级石像（金碑）：20x28
+	var tier := Image.create(20, 28, false, Image.FORMAT_RGBA8)
+	for y in range(2, 28):
+		for x in range(4, 16):
+			tier.set_pixel(x, y, Color8(196, 164, 90))
+	_rect(tier, 6, 0, 13, 2, Color8(196, 164, 90))
+	_rect(tier, 2, 26, 17, 27, Color8(130, 108, 60))
+	_rect(tier, 8, 6, 11, 14, Color8(130, 108, 60))
+	tier.save_png(OUT_DIR + "/tier_statue.png")
+
+	# 仓库箱（棕木箱）：24x20
+	var chest := Image.create(24, 20, false, Image.FORMAT_RGBA8)
+	_rect(chest, 1, 4, 22, 19, Color8(130, 90, 50))
+	_rect(chest, 1, 4, 22, 8, Color8(150, 106, 60))
+	_rect(chest, 1, 11, 22, 12, Color8(90, 62, 34))
+	_rect(chest, 10, 10, 13, 14, Color8(200, 180, 90))
+	chest.save_png(OUT_DIR + "/stash_box.png")
 
 
 func _rect(img: Image, x0: int, y0: int, x1: int, y1: int, color: Color) -> void:

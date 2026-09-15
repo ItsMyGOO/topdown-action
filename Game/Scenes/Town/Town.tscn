@@ -1,8 +1,13 @@
-[gd_scene load_steps=5 format=3]
+[gd_scene load_steps=10 format=3]
 
 [ext_resource type="PackedScene" path="res://Game/Scenes/Player/Player.tscn" id="1_player"]
 [ext_resource type="Script" path="res://Game/Scenes/Town/TownController.cs" id="2_townctl"]
 [ext_resource type="PackedScene" path="res://Game/UI/Hud/Hud.tscn" id="3_hud"]
+[ext_resource type="Texture2D" path="res://Game/Art/Pixel/portal.png" id="4_portal"]
+[ext_resource type="Texture2D" path="res://Game/Art/Pixel/class_statue.png" id="5_statue"]
+[ext_resource type="Texture2D" path="res://Game/Art/Pixel/tier_statue.png" id="6_tier"]
+[ext_resource type="Texture2D" path="res://Game/Art/Pixel/stash_box.png" id="7_stash"]
+[ext_resource type="Texture2D" path="res://Game/Art/Pixel/dungeon_portal.png" id="8_dungeon"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_vendor"]
 size = Vector2(48, 48)
@@ -34,12 +39,20 @@ position = Vector2(160, 90)
 position = Vector2(224, 90)
 monitoring = true
 
+[node name="Sprite" type="Sprite2D" parent="YSort/Vendor"]
+texture = ExtResource("7_stash")
+offset = Vector2(0, -10)
+
 [node name="CollisionShape2D" type="CollisionShape2D" parent="YSort/Vendor"]
 shape = SubResource("RectangleShape2D_vendor")
 
 [node name="ClassShrine" type="Area2D" parent="YSort" groups=["class_shrine"]]
 position = Vector2(160, 160)
 monitoring = true
+
+[node name="Sprite" type="Sprite2D" parent="YSort/ClassShrine"]
+texture = ExtResource("5_statue")
+offset = Vector2(0, -14)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="YSort/ClassShrine"]
 shape = SubResource("RectangleShape2D_shrine")
@@ -48,12 +61,20 @@ shape = SubResource("RectangleShape2D_shrine")
 position = Vector2(96, 90)
 monitoring = true
 
+[node name="Sprite" type="Sprite2D" parent="YSort/PortalToWorld"]
+texture = ExtResource("4_portal")
+offset = Vector2(0, -16)
+
 [node name="CollisionShape2D" type="CollisionShape2D" parent="YSort/PortalToWorld"]
 shape = SubResource("RectangleShape2D_portal")
 
 [node name="PortalToDungeon" type="Area2D" parent="YSort" groups=["portal_to_dungeon"]]
 position = Vector2(96, 160)
 monitoring = true
+
+[node name="Sprite" type="Sprite2D" parent="YSort/PortalToDungeon"]
+texture = ExtResource("8_dungeon")
+offset = Vector2(0, -16)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="YSort/PortalToDungeon"]
 shape = SubResource("RectangleShape2D_dungeonportal")
@@ -62,12 +83,20 @@ shape = SubResource("RectangleShape2D_dungeonportal")
 position = Vector2(288, 160)
 monitoring = true
 
+[node name="Sprite" type="Sprite2D" parent="YSort/TierShrine"]
+texture = ExtResource("6_tier")
+offset = Vector2(0, -14)
+
 [node name="CollisionShape2D" type="CollisionShape2D" parent="YSort/TierShrine"]
 shape = SubResource("RectangleShape2D_tiershrine")
 
 [node name="StashBox" type="Area2D" parent="YSort" groups=["stash_box"]]
 position = Vector2(288, 90)
 monitoring = true
+
+[node name="Sprite" type="Sprite2D" parent="YSort/StashBox"]
+texture = ExtResource("7_stash")
+offset = Vector2(0, -10)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="YSort/StashBox"]
 shape = SubResource("RectangleShape2D_stash")

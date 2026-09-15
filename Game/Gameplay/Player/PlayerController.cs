@@ -316,6 +316,8 @@ public partial class PlayerController : CharacterBody2D
             _context.Mana.Tick((float)delta);
             _context.Cooldowns.Tick((float)delta);
         }
+        UpdateCursorSkillIndicator();
+
         ReconcileLevelGrowth();
         if (Godot.Input.IsActionJustPressed("use_potion"))
         {
@@ -438,9 +440,24 @@ public partial class PlayerController : CharacterBody2D
         switch (decision.Kind)
         {
             case SkillDecisionKind.StartAoeTargeting:
-                // Secondary：进入选点模式
-                ClearClickToMoveDestination();
-                _stateMachine.ChangeState(_aoeTargetingState);
+                if (
+                    _mouseKeyboardInput is MouseKeyboardInputAdapter mouseAdapter
+                    && mouseAdapter.SecondaryFromMouse
+                )
+                {
+                    // D4 式：鼠标右键按下即在光标落点（钳制射程）直接施放。
+                    var secondaryDef = SkillDatabase.SkillsFor(_session.ClassId)[
+                        SkillSlot.Secondary
+                    ];
+                    StartSecondaryCastFromTargetingPoint(ResolveCursorPoint(secondaryDef));
+                }
+                else
+                {
+                    // 手柄/触屏：进入选点模式（右摇杆/拖拽 + 确认键）。
+                    ClearClickToMoveDestination();
+                    _stateMachine.ChangeState(_aoeTargetingState);
+                }
+
                 break;
             case SkillDecisionKind.StartInstantCast:
                 // Primary 仍由原普攻系统处理，避免重复。
@@ -621,9 +638,67 @@ public partial class PlayerController : CharacterBody2D
         return _context.Facing == Vector2.Zero ? Vector2.Down : _context.Facing.Normalized();
     }
 
+    /// <summary>
+    /// D4 式光标技能指示圈：技能开启时在光标落点处常显 Secondary 技能的范围圈。
+    /// 选点瞄准状态由 AoeTargetingState 自行管理指示器，此处跳过。
+    /// </summary>
+    private void UpdateCursorSkillIndicator()
+    {
+        if (!Features.EnableSkills || !Features.EnableAoeIndicator || _aoeIndicatorScene == null)
+        {
+            if (_aoeIndicator != null)
+            {
+                _aoeIndicator.Visible = false;
+            }
+
+            return;
+        }
+
+        if (_context.IsTargeting)
+        {
+            // 选点模式已有自己的指示器。
+            return;
+        }
+
+        var indicator = _aoeIndicator ?? GetOrCreateAoeIndicator();
+        _aoeIndicator = indicator;
+        if (indicator == null)
+        {
+            return;
+        }
+
+        var secondary = SkillDatabase.SkillsFor(_session.ClassId)[SkillSlot.Secondary];
+        indicator.SetRadius(secondary.AoeRadius);
+        indicator.GlobalPosition = ResolveCursorPoint(secondary);
+        indicator.Visible = true;
+    }
+
+    /// <summary>
+    /// 解析光标落点（超出射程钳制在射程处）。
+    /// </summary>
+    private Vector2 ResolveCursorPoint(SkillDefinition def)
+    {
+        var cursor = GetGlobalMousePosition();
+        var distance = GlobalPosition.DistanceTo(cursor);
+
+        return distance <= def.Range
+            ? cursor
+            : GlobalPosition + (cursor - GlobalPosition).Normalized() * Mathf.Max(0f, def.Range);
+    }
+
     private Vector2 ResolveAoePoint(SkillDefinition def, Vector2 direction)
     {
-        // 优先：有合法目标且在范围内 -> 目标落点
+        // D4 式：优先落在光标位置（超出射程则钳制在射程处）。
+        var cursor = GetGlobalMousePosition();
+        var cursorDistance = GlobalPosition.DistanceTo(cursor);
+        if (cursorDistance > 0.01f)
+        {
+            return cursorDistance <= def.Range
+                ? cursor
+                : GlobalPosition + (cursor - GlobalPosition).Normalized() * def.Range;
+        }
+
+        // 兜底：有合法目标且在范围内 -> 目标落点
         if (TryResolveCurrentTarget(out var targetNode))
         {
             var d = GlobalPosition.DistanceTo(targetNode.GlobalPosition);
@@ -633,7 +708,7 @@ public partial class PlayerController : CharacterBody2D
             }
         }
 
-        // 否则：朝方向落点并 clamp 到 range
+        // 最后：朝方向落点并 clamp 到 range
         var range = Mathf.Max(0f, def.Range);
         return GlobalPosition + direction.Normalized() * range;
     }

@@ -16,6 +16,11 @@ public sealed class MouseKeyboardInputAdapter : ICommandProvider
     private bool _wasCancelDown;
 
     /// <summary>
+    /// 本帧 Secondary 边沿是否来自鼠标（键鼠适配器内恒为 true）。
+    /// </summary>
+    public bool SecondaryFromMouse { get; private set; }
+
+    /// <summary>
     /// 读取当前帧的输入状态并生成命令快照。
     /// </summary>
     public PlayerCommand GetCommand()
@@ -42,6 +47,8 @@ public sealed class MouseKeyboardInputAdapter : ICommandProvider
 
         _wasConfirmDown = leftDown;
         _wasCancelDown = rightDown;
+
+        SecondaryFromMouse = secondary;
 
         return new PlayerCommand(
             ClickMoveDestination: null,
