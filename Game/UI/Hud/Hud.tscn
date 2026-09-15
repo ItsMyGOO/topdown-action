@@ -9,78 +9,133 @@
 [node name="Hud" type="CanvasLayer"]
 script = ExtResource("1_hud_cs")
 
-[node name="Margin" type="MarginContainer" parent="."]
-anchor_right = 1.0
-anchor_bottom = 1.0
+[node name="TopLeft" type="MarginContainer" parent="."]
 offset_left = 8.0
 offset_top = 8.0
-offset_right = -8.0
-offset_bottom = -8.0
+offset_right = 500.0
+offset_bottom = 60.0
+mouse_filter = 2
 
-[node name="VBox" type="VBoxContainer" parent="Margin"]
-size_flags_horizontal = 3
-size_flags_vertical = 3
+[node name="VBox" type="VBoxContainer" parent="TopLeft"]
 
-[node name="StatsLine" type="Label" parent="Margin/VBox"]
+[node name="StatsLine" type="Label" parent="TopLeft/VBox"]
 text = ""
 
-[node name="ResourcesLine" type="Label" parent="Margin/VBox"]
+[node name="ResourcesLine" type="Label" parent="TopLeft/VBox"]
 text = ""
 
-[node name="SkillBar" type="HBoxContainer" parent="Margin/VBox"]
-
-[node name="PrimaryLabel" type="Label" parent="Margin/VBox/SkillBar"]
-text = "P"
-
-[node name="SecondaryLabel" type="Label" parent="Margin/VBox/SkillBar"]
-text = "S"
-
-[node name="Skill1Label" type="Label" parent="Margin/VBox/SkillBar"]
-text = "1"
-
-[node name="Skill2Label" type="Label" parent="Margin/VBox/SkillBar"]
-text = "2"
-
-[node name="Skill3Label" type="Label" parent="Margin/VBox/SkillBar"]
-text = "3"
-
-[node name="Skill4Label" type="Label" parent="Margin/VBox/SkillBar"]
-text = "4"
-
-[node name="TouchTargetingControls" type="HBoxContainer" parent="Margin/VBox"]
-visible = false
-
-[node name="ConfirmButton" type="Button" parent="Margin/VBox/TouchTargetingControls"]
-text = "确认"
-
-[node name="CancelButton" type="Button" parent="Margin/VBox/TouchTargetingControls"]
-text = "取消"
-
-[node name="ToastLabel" type="Label" parent="Margin/VBox"]
-visible = false
-text = ""
-
-[node name="InventoryPanel" parent="Margin/VBox" instance=ExtResource("2_inventory_panel")]
-visible = false
-
-[node name="TalentPanel" parent="Margin/VBox" instance=ExtResource("3_talent_panel")]
-visible = false
-
-[node name="StashPanel" parent="Margin/VBox" instance=ExtResource("4_stash_panel")]
-visible = false
-
-[node name="ParagonPanel" parent="Margin/VBox" instance=ExtResource("5_paragon_panel")]
-visible = false
-
-[node name="InteractPrompt" type="Label" parent="."]
-groups=["interact_prompt"]
-visible = false
+[node name="BottomBar" type="HBoxContainer" parent="."]
 anchor_top = 1.0
 anchor_bottom = 1.0
 offset_left = 0.0
-offset_top = -60.0
+offset_top = -64.0
 offset_right = 0.0
-offset_bottom = -40.0
+offset_bottom = -18.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_constants/separation = 16
+
+[node name="HealthBox" type="VBoxContainer" parent="BottomBar"]
+custom_minimum_size = Vector2(150, 0)
+alignment = 2
+mouse_filter = 2
+
+[node name="HealthLabel" type="Label" parent="BottomBar/HealthBox"]
+text = "生命 100/100"
+
+[node name="HealthBar" type="ProgressBar" parent="BottomBar/HealthBox"]
+custom_minimum_size = Vector2(150, 14)
+max_value = 100.0
+value = 100.0
+show_percentage = false
+mouse_filter = 2
+
+[node name="SkillBar" type="HBoxContainer" parent="BottomBar"]
+theme_override_constants/separation = 6
+mouse_filter = 2
+
+[node name="ManaBox" type="VBoxContainer" parent="BottomBar"]
+custom_minimum_size = Vector2(150, 0)
+alignment = 2
+mouse_filter = 2
+
+[node name="ManaLabel" type="Label" parent="BottomBar/ManaBox"]
+text = "法力 100/100"
+
+[node name="ManaBar" type="ProgressBar" parent="BottomBar/ManaBox"]
+custom_minimum_size = Vector2(150, 14)
+max_value = 100.0
+value = 100.0
+show_percentage = false
+mouse_filter = 2
+
+[node name="XpTrack" type="ProgressBar" parent="."]
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -14.0
+max_value = 100.0
+value = 0.0
+show_percentage = false
+mouse_filter = 2
+
+[node name="InteractPrompt" type="Label" parent="."]
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_top = -110.0
+offset_bottom = -90.0
 grow_horizontal = 2
 grow_vertical = 0
 text = "按 E 交互"
+visible = false
+
+[node name="ToastLabel" type="Label" parent="."]
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_top = -140.0
+offset_bottom = -120.0
+grow_horizontal = 2
+grow_vertical = 0
+text = ""
+visible = false
+
+[node name="SkillTooltip" type="PanelContainer" parent="."]
+visible = false
+mouse_filter = 2
+
+[node name="Margin" type="MarginContainer" parent="SkillTooltip"]
+mouse_filter = 2
+
+[node name="VBox" type="VBoxContainer" parent="SkillTooltip/Margin"]
+
+[node name="NameLabel" type="Label" parent="SkillTooltip/Margin/VBox"]
+text = ""
+
+[node name="MetaLabel" type="Label" parent="SkillTooltip/Margin/VBox"]
+text = ""
+
+[node name="DescLabel" type="Label" parent="SkillTooltip/Margin/VBox"]
+custom_minimum_size = Vector2(280, 0)
+autowrap_mode = 2
+text = ""
+
+[node name="TouchTargetingControls" type="HBoxContainer" parent="."]
+visible = false
+
+[node name="ConfirmButton" type="Button" parent="TouchTargetingControls"]
+text = "确认"
+
+[node name="CancelButton" type="Button" parent="TouchTargetingControls"]
+text = "取消"
+
+[node name="InventoryPanel" parent="." instance=ExtResource("2_inventory_panel")]
+visible = false
+
+[node name="TalentPanel" parent="." instance=ExtResource("3_talent_panel")]
+visible = false
+
+[node name="StashPanel" parent="." instance=ExtResource("4_stash_panel")]
+visible = false
+
+[node name="ParagonPanel" parent="." instance=ExtResource("5_paragon_panel")]
+visible = false

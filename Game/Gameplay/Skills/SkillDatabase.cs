@@ -28,7 +28,8 @@ public static class SkillDatabase
                 CooldownSeconds: 0f,
                 ManaCost: 0f,
                 Range: 18f,
-                AoeRadius: 0f
+                AoeRadius: 0f,
+                Description: "挥击面前的敌人。按住左键持续攻击。"
             ),
             // Secondary：地面选点 AOE
             [SkillSlot.Secondary] = new SkillDefinition(
@@ -39,7 +40,8 @@ public static class SkillDatabase
                 CooldownSeconds: 4f,
                 ManaCost: 25f,
                 Range: 120f,
-                AoeRadius: 26f
+                AoeRadius: 26f,
+                Description: "在光标处降下范围打击。按住右键直接在光标处施放。"
             ),
             [SkillSlot.Skill1] = new SkillDefinition(
                 SkillId: "skill1_projectile",
@@ -49,7 +51,8 @@ public static class SkillDatabase
                 CooldownSeconds: 1.5f,
                 ManaCost: 10f,
                 Range: 160f,
-                AoeRadius: 0f
+                AoeRadius: 0f,
+                Description: "朝光标方向射出投射物，命中首个敌人。"
             ),
             [SkillSlot.Skill2] = new SkillDefinition(
                 SkillId: "skill2_projectile",
@@ -59,7 +62,8 @@ public static class SkillDatabase
                 CooldownSeconds: 2.5f,
                 ManaCost: 18f,
                 Range: 200f,
-                AoeRadius: 0f
+                AoeRadius: 0f,
+                Description: "射出更强力的远距投射物。"
             ),
             [SkillSlot.Skill3] = new SkillDefinition(
                 SkillId: "skill3_aoe_small",
@@ -69,7 +73,8 @@ public static class SkillDatabase
                 CooldownSeconds: 3f,
                 ManaCost: 15f,
                 Range: 80f,
-                AoeRadius: 16f
+                AoeRadius: 16f,
+                Description: "在小范围内造成打击。"
             ),
             [SkillSlot.Skill4] = new SkillDefinition(
                 SkillId: "skill4_aoe_big",
@@ -79,7 +84,8 @@ public static class SkillDatabase
                 CooldownSeconds: 6f,
                 ManaCost: 35f,
                 Range: 90f,
-                AoeRadius: 34f
+                AoeRadius: 34f,
+                Description: "大范围毁灭性打击。"
             ),
         };
 

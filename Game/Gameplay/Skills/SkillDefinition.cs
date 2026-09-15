@@ -36,6 +36,7 @@ public enum SkillEffectKind
 /// <param name="ManaCost">法力消耗。</param>
 /// <param name="Range">施法距离（像素）。</param>
 /// <param name="AoeRadius">范围半径（像素）。</param>
+/// <param name="Description">玩家可读描述（供技能栏悬停提示）。</param>
 public sealed record SkillDefinition(
     string SkillId,
     SkillSlot Slot,
@@ -44,5 +45,6 @@ public sealed record SkillDefinition(
     float CooldownSeconds,
     float ManaCost,
     float Range,
-    float AoeRadius
+    float AoeRadius,
+    string Description = ""
 );

@@ -129,6 +129,11 @@ public partial class PlayerController : CharacterBody2D
     public int SessionWorldTier => _session.WorldTier;
 
     /// <summary>
+    /// 职业 Id（来自会话，供 HUD 查询技能表）。
+    /// </summary>
+    public string SessionClassId => _session.ClassId;
+
+    /// <summary>
     /// 城镇仓库（来自会话，供仓库面板读写）。
     /// </summary>
     public InventoryModel Stash => _session.Stash;
@@ -763,13 +768,18 @@ public partial class PlayerController : CharacterBody2D
         }
     }
 
+    /// <summary>
+    /// D4 式左键：按下拾取/选目标；按住时持续生效——
+    /// 光标下有敌人则锁定目标（自动攻击系统接管），
+    /// 否则持续朝光标位置移动（目的地每帧跟随光标）。
+    /// </summary>
     private bool HandleLeftClick()
     {
         var isDown = Godot.Input.IsMouseButtonPressed(MouseButton.Left);
         var justPressed = isDown && !_wasLeftMouseDown;
         _wasLeftMouseDown = isDown;
 
-        if (!justPressed)
+        if (!isDown)
         {
             return false;
         }
@@ -786,7 +796,8 @@ public partial class PlayerController : CharacterBody2D
 
         var results = space.IntersectPoint(query, maxResults: 16);
 
-        if (Features.EnableLoot && Features.EnableInventory)
+        // 拾取：仅点击瞬间（按住滑过不掉东西）。
+        if (justPressed && Features.EnableLoot && Features.EnableInventory)
         {
             var loot = results
                 .Select(r => r["collider"].AsGodotObject())
@@ -799,6 +810,7 @@ public partial class PlayerController : CharacterBody2D
                 return HandleLootClick(loot);
             }
         }
+
         var target = results
             .Select(r => r["collider"].AsGodotObject())
             .OfType<Node>()
@@ -812,7 +824,12 @@ public partial class PlayerController : CharacterBody2D
         }
         else
         {
-            _targeting.ClearTarget();
+            if (justPressed)
+            {
+                _targeting.ClearTarget();
+            }
+
+            // 按住：目的地跟随光标（D4 持续移动手感）。
             _clickToMoveModel.SetDestination(mousePos);
             ClickToMove?.SetDestination(mousePos);
         }
