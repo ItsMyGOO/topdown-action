@@ -13,26 +13,20 @@ namespace GodotGameTemplate.Game.UI.Hud;
 /// </summary>
 public partial class Hud : CanvasLayer
 {
-    private Label _classLabel = default!;
-    private Label _tierLabel = default!;
-    private Label _lifeLabel = default!;
-    private Label _evadeLabel = default!;
-    private Label _potionLabel = default!;
-    private Label _manaLabel = default!;
-    private Label _goldLabel = default!;
-    private Label _levelLabel = default!;
-    private Label _toastLabel = default!;
     private HBoxContainer _skillBar = default!;
     private HBoxContainer _touchTargetingControls = default!;
     private Button _confirmButton = default!;
     private Button _cancelButton = default!;
+    private InventoryPanel _inventoryPanel = default!;
+    private Label _statsLine = default!;
+    private Label _resourcesLine = default!;
     private Label _primaryLabel = default!;
     private Label _secondaryLabel = default!;
     private Label _skill1Label = default!;
     private Label _skill2Label = default!;
     private Label _skill3Label = default!;
     private Label _skill4Label = default!;
-    private InventoryPanel _inventoryPanel = default!;
+    private Label _toastLabel = default!;
     private TalentPanel _talentPanel = default!;
     private GodotGameTemplate.Game.UI.Paragon.ParagonPanel _paragonPanel = default!;
 
@@ -40,14 +34,8 @@ public partial class Hud : CanvasLayer
 
     public override void _Ready()
     {
-        _classLabel = GetNode<Label>("Margin/VBox/ClassLabel");
-        _tierLabel = GetNode<Label>("Margin/VBox/TierLabel");
-        _lifeLabel = GetNode<Label>("Margin/VBox/LifeLabel");
-        _evadeLabel = GetNode<Label>("Margin/VBox/EvadeLabel");
-        _potionLabel = GetNode<Label>("Margin/VBox/PotionLabel");
-        _manaLabel = GetNode<Label>("Margin/VBox/ManaLabel");
-        _goldLabel = GetNode<Label>("Margin/VBox/GoldLabel");
-        _levelLabel = GetNode<Label>("Margin/VBox/LevelLabel");
+        _statsLine = GetNode<Label>("Margin/VBox/StatsLine");
+        _resourcesLine = GetNode<Label>("Margin/VBox/ResourcesLine");
         _skillBar = GetNode<HBoxContainer>("Margin/VBox/SkillBar");
         _touchTargetingControls = GetNode<HBoxContainer>("Margin/VBox/TouchTargetingControls");
         _confirmButton = GetNode<Button>("Margin/VBox/TouchTargetingControls/ConfirmButton");
@@ -60,6 +48,7 @@ public partial class Hud : CanvasLayer
         _skill4Label = GetNode<Label>("Margin/VBox/SkillBar/Skill4Label");
         _toastLabel = GetNode<Label>("Margin/VBox/ToastLabel");
         _inventoryPanel = GetNode<InventoryPanel>("Margin/VBox/InventoryPanel");
+        GetNode<Label>("InteractPrompt").AddToGroup("interact_prompt");
         _talentPanel = GetNode<TalentPanel>("Margin/VBox/TalentPanel");
         _paragonPanel = GetNode<GodotGameTemplate.Game.UI.Paragon.ParagonPanel>(
             "Margin/VBox/ParagonPanel"
@@ -112,43 +101,27 @@ public partial class Hud : CanvasLayer
     {
         if (_player == null)
         {
-            _classLabel.Text = "职业: --";
-            _tierLabel.Text = "世界等级: --";
-            _lifeLabel.Text = "生命: --/--";
-            _evadeLabel.Text = "闪避: --";
-            _potionLabel.Text = "药水: --";
-            _manaLabel.Text = "法力: --/--";
-            _goldLabel.Text = "金币: 0";
-            _levelLabel.Visible = false;
+            _statsLine.Text = "未找到角色";
+            _resourcesLine.Text = string.Empty;
             return;
         }
 
-        var health = _player.ActorContext.Health;
-        var evade = _player.ActorContext.Evade;
-        var mana = _player.ActorContext.Mana;
-        _classLabel.Text = $"职业: {_player.Class.Name}";
-        var tier = WorldTierDatabase.Get(_player.SessionWorldTier);
-        _tierLabel.Text = $"世界等级: {tier.Name}";
-        _tierLabel.Modulate = tier.Tier switch
-        {
-            3 => new Color(1f, 0.35f, 0.35f),
-            2 => new Color(1f, 0.7f, 0.35f),
-            _ => Colors.White,
-        };
-        _lifeLabel.Text = $"生命: {health.Current:0}/{health.Max:0}";
-        _evadeLabel.Text = $"闪避: {evade.Available}/{evade.MaxCharges}";
-        var potions = _player.Potions;
-        _potionLabel.Text = $"药水: {potions.Available}/{potions.MaxCharges} (Q)";
-        _manaLabel.Text = $"法力: {mana.Current:0}/{mana.Max:0}";
-        _goldLabel.Text = $"金币: {_player.Gold}";
-
         var leveling = _player.Leveling;
-        _levelLabel.Visible = leveling != null;
-        if (leveling != null)
-        {
-            _levelLabel.Text =
-                $"等级: {leveling.Level}  经验: {leveling.CurrentXp}/{leveling.XpToNextLevel}";
-        }
+        var tier = WorldTierDatabase.Get(_player.SessionWorldTier);
+        _statsLine.Text =
+            $"{_player.Class.Name}  Lv.{leveling?.Level ?? 1}"
+            + $"  经验 {leveling?.CurrentXp ?? 0}/{leveling?.XpToNextLevel ?? 0}"
+            + $"  {tier.Name}难度  金币 {_player.Gold}";
+
+        var health = _player.ActorContext.Health;
+        var mana = _player.ActorContext.Mana;
+        var evade = _player.ActorContext.Evade;
+        var potions = _player.Potions;
+        _resourcesLine.Text =
+            $"生命 {health.Current:0}/{health.Max:0}"
+            + $"  法力 {mana.Current:0}/{mana.Max:0}"
+            + $"  闪避 {evade.Available}/{evade.MaxCharges}"
+            + $"  药水 {potions.Available}/{potions.MaxCharges}(Q)";
     }
 
     private void UpdateSkillBar()

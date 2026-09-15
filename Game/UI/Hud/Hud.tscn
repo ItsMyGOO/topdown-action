@@ -21,29 +21,11 @@ offset_bottom = -8.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
 
-[node name="ClassLabel" type="Label" parent="Margin/VBox"]
-text = "职业: --"
+[node name="StatsLine" type="Label" parent="Margin/VBox"]
+text = ""
 
-[node name="TierLabel" type="Label" parent="Margin/VBox"]
-text = "世界等级: --"
-
-[node name="LifeLabel" type="Label" parent="Margin/VBox"]
-text = "生命: --/--"
-
-[node name="EvadeLabel" type="Label" parent="Margin/VBox"]
-text = "闪避: --"
-
-[node name="PotionLabel" type="Label" parent="Margin/VBox"]
-text = "药水: --"
-
-[node name="ManaLabel" type="Label" parent="Margin/VBox"]
-text = "法力: --/--"
-
-[node name="GoldLabel" type="Label" parent="Margin/VBox"]
-text = "金币: 0"
-
-[node name="LevelLabel" type="Label" parent="Margin/VBox"]
-text = "等级: --"
+[node name="ResourcesLine" type="Label" parent="Margin/VBox"]
+text = ""
 
 [node name="SkillBar" type="HBoxContainer" parent="Margin/VBox"]
 
@@ -89,3 +71,16 @@ visible = false
 
 [node name="ParagonPanel" parent="Margin/VBox" instance=ExtResource("5_paragon_panel")]
 visible = false
+
+[node name="InteractPrompt" type="Label" parent="."]
+groups=["interact_prompt"]
+visible = false
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 0.0
+offset_top = -60.0
+offset_right = 0.0
+offset_bottom = -40.0
+grow_horizontal = 2
+grow_vertical = 0
+text = "按 E 交互"

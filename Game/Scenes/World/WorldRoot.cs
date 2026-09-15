@@ -130,6 +130,8 @@ public partial class WorldRoot : Node2D
 
     public override void _PhysicsProcess(double delta)
     {
+        UpdateInteractPrompt();
+
         if (!Input.IsActionJustPressed("interact"))
         {
             return;
@@ -275,6 +277,34 @@ public partial class WorldRoot : Node2D
             var orb = HealthOrbScene.Instantiate<HealthOrb>();
             orb.GlobalPosition = pos + new Vector2(-8f + i * 16f, 8f);
             _lootContainer.AddChild(orb);
+        }
+    }
+
+    /// <summary>
+    /// 靠近回城门时显示交互提示（地下城回城门初始隐藏时不提示）。
+    /// </summary>
+    private void UpdateInteractPrompt()
+    {
+        var label = GetTree().GetFirstNodeInGroup("interact_prompt") as Label;
+        if (label == null || _player == null || _portalToTown == null || !_portalToTown.Visible)
+        {
+            return;
+        }
+
+        var near = false;
+        foreach (var body in _portalToTown.GetOverlappingBodies())
+        {
+            if (body == _player)
+            {
+                near = true;
+                break;
+            }
+        }
+
+        label.Visible = near;
+        if (near)
+        {
+            label.Text = "按 E 交互：返回城镇";
         }
     }
 

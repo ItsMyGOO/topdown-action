@@ -45,6 +45,8 @@ public partial class TownController : Node2D
 
     public override void _PhysicsProcess(double delta)
     {
+        UpdateInteractPrompt();
+
         if (!Input.IsActionJustPressed("interact"))
         {
             return;
@@ -155,6 +157,52 @@ public partial class TownController : Node2D
 
         _session.ClassId = catalog[(currentIndex + 1) % catalog.Count].Id;
         _session.Save();
+    }
+
+    /// <summary>
+    /// 靠近交互物时在 HUD 显示「按 E 交互：名称」。
+    /// </summary>
+    private void UpdateInteractPrompt()
+    {
+        var label = GetTree().GetFirstNodeInGroup("interact_prompt") as Label;
+
+        if (_player == null || label == null)
+        {
+            return;
+        }
+
+        string? prompt = null;
+
+        if (_portalToWorld != null && IsPlayerInsideArea(_player, _portalToWorld))
+        {
+            prompt = "前往旷野";
+        }
+        else if (_portalToDungeon != null && IsPlayerInsideArea(_player, _portalToDungeon))
+        {
+            prompt = "进入地下城";
+        }
+        else if (_stashBox != null && IsPlayerInsideArea(_player, _stashBox))
+        {
+            prompt = "打开仓库";
+        }
+        else if (_tierShrine != null && IsPlayerInsideArea(_player, _tierShrine))
+        {
+            prompt = $"切换世界等级（当前 {WorldTierDatabase.Get(_session?.WorldTier ?? 1).Name}）";
+        }
+        else if (_classShrine != null && IsPlayerInsideArea(_player, _classShrine))
+        {
+            prompt = $"切换职业（当前 {ClassDatabase.Get(_session?.ClassId ?? "barbarian").Name}）";
+        }
+        else if (_vendorArea != null && IsPlayerInsideArea(_player, _vendorArea))
+        {
+            prompt = "出售背包物品";
+        }
+
+        label.Visible = prompt != null;
+        if (prompt != null)
+        {
+            label.Text = $"按 E 交互：{prompt}";
+        }
     }
 
     private static bool IsPlayerInsideArea(PlayerController player, Area2D area)

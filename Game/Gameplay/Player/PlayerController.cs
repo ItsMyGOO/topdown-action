@@ -69,6 +69,7 @@ public partial class PlayerController : CharacterBody2D
     private PackedScene? _projectileEffectScene;
     private PackedScene? _aoeStrikeEffectScene;
     private AoeIndicator? _aoeIndicator;
+    private Vector2? _lastCastPoint;
 
     private PlayerCommand _currentCommand;
 
@@ -604,6 +605,7 @@ public partial class PlayerController : CharacterBody2D
         }
 
         ClearClickToMoveDestination();
+        _lastCastPoint = point;
         _skillCastState.Configure(slot, direction, point);
         _stateMachine.ChangeState(_skillCastState);
     }
@@ -617,6 +619,7 @@ public partial class PlayerController : CharacterBody2D
         }
 
         ClearClickToMoveDestination();
+        _lastCastPoint = point;
         _skillCastState.Configure(SkillSlot.Secondary, direction, point);
         _stateMachine.ChangeState(_skillCastState);
     }
@@ -639,24 +642,17 @@ public partial class PlayerController : CharacterBody2D
     }
 
     /// <summary>
-    /// D4 式光标技能指示圈：技能开启时在光标落点处常显 Secondary 技能的范围圈。
-    /// 选点瞄准状态由 AoeTargetingState 自行管理指示器，此处跳过。
+    /// 技能落点指示圈：仅在施放状态期间显示于施放点（选点瞄准状态由 TargetingState 自管）。
     /// </summary>
     private void UpdateCursorSkillIndicator()
     {
-        if (!Features.EnableSkills || !Features.EnableAoeIndicator || _aoeIndicatorScene == null)
+        if (_aoeIndicator is { Visible: true } && !_context.IsCasting)
         {
-            if (_aoeIndicator != null)
-            {
-                _aoeIndicator.Visible = false;
-            }
-
-            return;
+            _aoeIndicator.Visible = false;
         }
 
-        if (_context.IsTargeting)
+        if (!_context.IsCasting || _lastCastPoint == null)
         {
-            // 选点模式已有自己的指示器。
             return;
         }
 
@@ -667,9 +663,7 @@ public partial class PlayerController : CharacterBody2D
             return;
         }
 
-        var secondary = SkillDatabase.SkillsFor(_session.ClassId)[SkillSlot.Secondary];
-        indicator.SetRadius(secondary.AoeRadius);
-        indicator.GlobalPosition = ResolveCursorPoint(secondary);
+        indicator.GlobalPosition = _lastCastPoint.Value;
         indicator.Visible = true;
     }
 
