@@ -70,11 +70,19 @@ public partial class WorldRoot : Node2D
 
         _dungeonBossTotal = 0;
         _dungeonBossesDown = 0;
+        _dungeonTrashTotal = 0;
+        _dungeonTrashDown = 0;
+        _bossGate = GetNodeOrNull<StaticBody2D>("YSort/BossGate");
 
         var tier = WorldTierDatabase.Get(_session?.WorldTier ?? 1);
 
         foreach (var enemy in FindDescendantsOfType<BasicEnemyController>(_lootContainer))
         {
+            if (DungeonMode && !enemy.IsBoss)
+            {
+                _dungeonTrashTotal++;
+            }
+
             enemy.ApplyWorldTier(tier.EnemyHpMultiplier, tier.EnemyDamageMultiplier);
 
             var plan = enemy.IsBoss
@@ -103,6 +111,9 @@ public partial class WorldRoot : Node2D
 
     private int _dungeonBossTotal;
     private int _dungeonBossesDown;
+    private int _dungeonTrashTotal;
+    private int _dungeonTrashDown;
+    private StaticBody2D? _bossGate;
 
     /// <summary>
     /// 地下城敌人铺设：网格排布 18 普通怪 + 3 Boss。
@@ -112,24 +123,27 @@ public partial class WorldRoot : Node2D
         var enemyScene = GD.Load<PackedScene>("res://Game/Scenes/Enemies/BasicEnemy.tscn");
         var container = GetNodeOrNull("YSort") ?? this;
 
+        // 小怪区（x < 420）：18 只网格铺开。
         for (var i = 0; i < 18; i++)
         {
             var enemy = enemyScene.Instantiate<BasicEnemyController>();
-            enemy.Position = new Vector2(120f + (i % 6) * 70f, 60f + (i / 6) * 60f);
+            enemy.Position = new Vector2(90f + (i % 6) * 55f, 60f + (i / 6) * 60f);
             container.AddChild(enemy);
         }
 
+        // Boss 房（x > 420）：3 只。
         for (var i = 0; i < 3; i++)
         {
             var boss = enemyScene.Instantiate<BasicEnemyController>();
             boss.IsBoss = true;
-            boss.Position = new Vector2(200f + i * 120f, 280f);
+            boss.Position = new Vector2(480f + i * 60f, 190f);
             container.AddChild(boss);
         }
     }
 
     public override void _PhysicsProcess(double delta)
     {
+        UpdateDungeonPrompt();
         UpdateInteractPrompt();
 
         if (!Input.IsActionJustPressed("interact"))
@@ -221,6 +235,14 @@ public partial class WorldRoot : Node2D
                 CallDeferred(nameof(OpenDungeonExit));
             }
         }
+        else if (DungeonMode)
+        {
+            _dungeonTrashDown++;
+            if (_dungeonTrashDown >= _dungeonTrashTotal)
+            {
+                CallDeferred(nameof(OpenBossGate));
+            }
+        }
 
         // 血球：普通怪 30%，精英必掉 1，Boss 2。
         var orbCount = plan switch
@@ -236,6 +258,65 @@ public partial class WorldRoot : Node2D
         // "Can't change this state while flushing queries."
         // 因此这里统一延后到空闲帧再生成掉落。
         CallDeferred(nameof(SpawnLootDeferred), pos, dropCount, (int)rarityFloor, orbCount);
+    }
+
+    /// <summary>
+    /// 小怪清空后开启 Boss 房门。
+    /// </summary>
+    private void OpenBossGate()
+    {
+        if (_bossGate == null)
+        {
+            return;
+        }
+
+        foreach (var child in _bossGate.GetChildren())
+        {
+            if (child is CollisionShape2D shape)
+            {
+                shape.SetDeferred("disabled", true);
+            }
+        }
+
+        _bossGate.Visible = false;
+    }
+
+    /// <summary>
+    /// 地下城进度提示（复用交互提示标签）：清怪进度 → Boss 房 → 回城门。
+    /// </summary>
+    private void UpdateDungeonPrompt()
+    {
+        if (!DungeonMode)
+        {
+            return;
+        }
+
+        var label = GetTree().GetFirstNodeInGroup("interact_prompt") as Label;
+        if (label == null)
+        {
+            return;
+        }
+
+        string text;
+        if (_dungeonTrashDown < _dungeonTrashTotal)
+        {
+            text = $"清理小怪 {_dungeonTrashDown}/{_dungeonTrashTotal} → 开启 Boss 房门";
+        }
+        else if (_dungeonBossesDown < _dungeonBossTotal)
+        {
+            text =
+                $"Boss 房已开启！击败 Boss {_dungeonBossesDown}/{_dungeonBossTotal} → 开启回城门";
+        }
+        else
+        {
+            text = string.Empty;
+        }
+
+        label.Visible = text != string.Empty;
+        if (label.Visible)
+        {
+            label.Text = text;
+        }
     }
 
     /// <summary>
@@ -285,6 +366,8 @@ public partial class WorldRoot : Node2D
     /// </summary>
     private void UpdateInteractPrompt()
     {
+        ResolvePlayer();
+
         var label = GetTree().GetFirstNodeInGroup("interact_prompt") as Label;
         if (label == null || _player == null || _portalToTown == null || !_portalToTown.Visible)
         {
@@ -301,9 +384,10 @@ public partial class WorldRoot : Node2D
             }
         }
 
-        label.Visible = near;
         if (near)
         {
+            // 仅在站上出口时覆盖进度文本；离开时交回 UpdateDungeonPrompt 管理。
+            label.Visible = true;
             label.Text = "按 E 交互：返回城镇";
         }
     }

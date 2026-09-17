@@ -1,12 +1,21 @@
-[gd_scene load_steps=5 format=3]
+[gd_scene load_steps=8 format=3]
 
 [ext_resource type="Script" path="res://Game/Scenes/World/WorldRoot.cs" id="1_worldroot"]
 [ext_resource type="PackedScene" path="res://Game/Scenes/Player/Player.tscn" id="2_player"]
 [ext_resource type="PackedScene" path="res://Game/UI/Hud/Hud.tscn" id="3_hud"]
-[ext_resource type="Texture2D" path="res://Game/Art/Pixel/dungeon_portal.png" id="4_dportal"]
+[ext_resource type="Texture2D" path="res://Game/Art/Pixel/portal.png" id="4_portal"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_portal_to_town"]
 size = Vector2(48, 48)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_wall_top"]
+size = Vector2(16, 180)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_wall_bottom"]
+size = Vector2(16, 140)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_gate"]
+size = Vector2(18, 60)
 
 [node name="Dungeon" type="Node2D"]
 script = ExtResource("1_worldroot")
@@ -18,7 +27,7 @@ DungeonMode = true
 position = Vector2(60, 60)
 
 [node name="PortalToTown" type="Area2D" parent="YSort" groups=["portal_to_town"]]
-position = Vector2(60, 140)
+position = Vector2(60, 320)
 visible = false
 monitoring = false
 
@@ -26,7 +35,37 @@ monitoring = false
 shape = SubResource("RectangleShape2D_portal_to_town")
 
 [node name="Sprite" type="Sprite2D" parent="YSort/PortalToTown"]
-texture = ExtResource("4_dportal")
-offset = Vector2(0, -16)
+position = Vector2(0, -16)
+texture = ExtResource("4_portal")
+
+[node name="WallTop" type="StaticBody2D" parent="YSort"]
+position = Vector2(420, 90)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="YSort/WallTop"]
+shape = SubResource("RectangleShape2D_wall_top")
+
+[node name="Visual" type="Polygon2D" parent="YSort/WallTop"]
+polygon = PackedVector2Array(-8, -90, 8, -90, 8, 90, -8, 90)
+color = Color(0.22, 0.19, 0.25, 1)
+
+[node name="WallBottom" type="StaticBody2D" parent="YSort"]
+position = Vector2(420, 310)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="YSort/WallBottom"]
+shape = SubResource("RectangleShape2D_wall_bottom")
+
+[node name="Visual" type="Polygon2D" parent="YSort/WallBottom"]
+polygon = PackedVector2Array(-8, -70, 8, -70, 8, 70, -8, 70)
+color = Color(0.22, 0.19, 0.25, 1)
+
+[node name="BossGate" type="StaticBody2D" parent="YSort" groups=["boss_gate"]]
+position = Vector2(420, 210)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="YSort/BossGate"]
+shape = SubResource("RectangleShape2D_gate")
+
+[node name="Visual" type="Polygon2D" parent="YSort/BossGate"]
+polygon = PackedVector2Array(-9, -30, 9, -30, 9, 30, -9, 30)
+color = Color(0.55, 0.4, 0.2, 1)
 
 [node name="Hud" parent="." instance=ExtResource("3_hud")]
