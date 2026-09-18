@@ -349,6 +349,9 @@ public partial class WorldRoot : Node2D
         }
 
         _bossGate.Visible = false;
+
+        // 门洞亮绿色通道：明确告知玩家从哪里进。
+        GetNodeOrNull<Polygon2D>("YSort/GateOpenMarker")?.SetDeferred("visible", true);
     }
 
     /// <summary>

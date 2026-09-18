@@ -36,21 +36,21 @@ texture = ExtResource("4_portal")
 position = Vector2(420, 90)
 
 [node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="YSort/WallTop"]
-polygon = PackedVector2Array(-8, -90, 8, -90, 8, 90, -8, 90)
+polygon = PackedVector2Array(-13, -90, 13, -90, 13, 90, -13, 90)
 
 [node name="Visual" type="Polygon2D" parent="YSort/WallTop"]
-polygon = PackedVector2Array(-8, -90, 8, -90, 8, 90, -8, 90)
-color = Color(0.22, 0.19, 0.25, 1)
+polygon = PackedVector2Array(-13, -90, 13, -90, 13, 90, -13, 90)
+color = Color(0.32, 0.26, 0.36, 1)
 
 [node name="WallBottom" type="StaticBody2D" parent="YSort"]
 position = Vector2(420, 310)
 
 [node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="YSort/WallBottom"]
-polygon = PackedVector2Array(-8, -70, 8, -70, 8, 70, -8, 70)
+polygon = PackedVector2Array(-13, -70, 13, -70, 13, 70, -13, 70)
 
 [node name="Visual" type="Polygon2D" parent="YSort/WallBottom"]
-polygon = PackedVector2Array(-8, -70, 8, -70, 8, 70, -8, 70)
-color = Color(0.22, 0.19, 0.25, 1)
+polygon = PackedVector2Array(-13, -70, 13, -70, 13, 70, -13, 70)
+color = Color(0.32, 0.26, 0.36, 1)
 
 [node name="BossGate" type="StaticBody2D" parent="YSort" groups=["boss_gate"]]
 position = Vector2(420, 210)
@@ -63,3 +63,9 @@ polygon = PackedVector2Array(-9, -30, 9, -30, 9, 30, -9, 30)
 color = Color(0.55, 0.4, 0.2, 1)
 
 [node name="Hud" parent="." instance=ExtResource("3_hud")]
+
+[node name="GateOpenMarker" type="Polygon2D" parent="YSort"]
+position = Vector2(420, 210)
+polygon = PackedVector2Array(-14, -30, 14, -30, 14, 30, -14, 30)
+color = Color(0.2, 0.85, 0.4, 0.55)
+visible = false
