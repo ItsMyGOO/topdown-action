@@ -146,12 +146,12 @@ public partial class WorldRoot : Node2D
             container.AddChild(enemy);
         }
 
-        // Boss 房（x > 420）：3 只。
+        // Boss 房（x > 420）：3 只收紧在门洞可视区，进门即战（D4 式守门 Boss）。
         for (var i = 0; i < 3; i++)
         {
             var boss = enemyScene.Instantiate<BasicEnemyController>();
             boss.IsBoss = true;
-            boss.Position = new Vector2(480f + i * 60f, 190f);
+            boss.Position = new Vector2(470f + i * 50f, 190f + (i % 2) * 30f);
             container.AddChild(boss);
         }
     }
@@ -402,6 +402,8 @@ public partial class WorldRoot : Node2D
             return;
         }
 
+        // 出口开在 Boss 房中央（玩家眼前），而非远端的出生点。
+        _portalToTown.GlobalPosition = new Vector2(530f, 190f);
         _portalToTown.Visible = true;
         _portalToTown.SetDeferred("monitoring", true);
     }
