@@ -79,7 +79,7 @@ public static class EliteRoller
     /// </summary>
     public static ElitePlan Boss()
     {
-        return new ElitePlan(true, EliteAffix.None, 10f, 10f, 50, 2, ItemRarity.Rare, 3f, 1.15f);
+        return new ElitePlan(true, EliteAffix.None, 6f, 10f, 50, 2, ItemRarity.Rare, 3f, 1.15f);
     }
 
     private static ElitePlan CreatePlan(bool isBoss, EliteAffix affix, Random random)

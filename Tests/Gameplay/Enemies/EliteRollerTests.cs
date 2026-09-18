@@ -82,7 +82,7 @@ public sealed class EliteRollerTests
         var plan = EliteRoller.Boss();
 
         Assert.True(plan.IsBoss);
-        Assert.Equal(10f, plan.HpMultiplier);
+        Assert.Equal(6f, plan.HpMultiplier);
         Assert.Equal(10f, plan.XpMultiplier);
         Assert.Equal(3f, plan.DamageMultiplier);
         Assert.Equal(1.15f, plan.SpeedMultiplier);

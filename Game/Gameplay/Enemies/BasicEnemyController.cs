@@ -1,3 +1,4 @@
+using System;
 using Godot;
 using GodotGameTemplate.Game.Scenes.Enemies;
 using GodotGameTemplate.Gameplay.Actors.Combat;
@@ -45,7 +46,7 @@ public partial class BasicEnemyController : CharacterBody2D, IHitReceiver, ITarg
     /// 移动速度（像素/秒）。
     /// </summary>
     [Export]
-    public float Speed { get; set; } = 60f;
+    public float Speed { get; set; } = 45f;
 
     /// <summary>
     /// 进入追击的警戒半径。
@@ -75,16 +76,16 @@ public partial class BasicEnemyController : CharacterBody2D, IHitReceiver, ITarg
     public float HitFlashDuration { get; set; } = 0.08f;
 
     private const float TouchRange = 26f;
-    private const double TouchCooldownSeconds = 0.8d;
     private const float KnockbackImpulse = 90f;
     private const float BossKnockbackScale = 0.3f;
     private const float DeathSeconds = 0.18f;
 
     private readonly EnemyAiOrchestrator _ai = new();
     private readonly KnockbackModel _knockback = new();
+    private readonly EnemyAttackWindup _windup = new(windupSeconds: 0.6, cooldownSeconds: 0.8);
+    private NavigationAgent2D? _navAgent;
     private Vector2 _homePosition;
     private double _hitFlashRemaining;
-    private double _touchCooldownRemaining;
     private float _animClock;
     private bool _dying;
 
@@ -108,6 +109,7 @@ public partial class BasicEnemyController : CharacterBody2D, IHitReceiver, ITarg
         Hp = MaxHp;
         _homePosition = GlobalPosition;
         Body ??= GetNodeOrNull<Sprite2D>("Body");
+        _navAgent = GetNodeOrNull<NavigationAgent2D>("NavigationAgent2D");
         HealthBar ??= GetNodeOrNull<EnemyHealthBar>("HealthBar");
         AddToGroup("targetable");
 
@@ -140,7 +142,6 @@ public partial class BasicEnemyController : CharacterBody2D, IHitReceiver, ITarg
             return;
         }
 
-        _touchCooldownRemaining = Mathf.Max(0d, _touchCooldownRemaining - delta);
         _knockback.Tick((float)delta);
         _animClock += (float)delta;
 
@@ -149,16 +150,55 @@ public partial class BasicEnemyController : CharacterBody2D, IHitReceiver, ITarg
             return;
         }
 
-        if (
-            _touchCooldownRemaining <= 0d
-            && GlobalPosition.DistanceTo(player.GlobalPosition) <= TouchRange
-        )
+        // 攻击前摇制：贴近起手（静止+预警闪烁）→ 到点判定 → 冷却。
+        // 前摇期间敌人不移动，玩家可拉开距离躲避（拉扯空间）。
+        if (_windup.IsWinding)
         {
-            player.TakeDamage(Damage);
-            _touchCooldownRemaining = TouchCooldownSeconds;
+            var resolved = _windup.Tick(delta);
+            if (resolved)
+            {
+                RestoreBodyColor();
+                if (
+                    !player.ActorContext.Health.IsEmpty
+                    && GlobalPosition.DistanceTo(player.GlobalPosition) <= TouchRange * 1.3f
+                )
+                {
+                    player.TakeDamage(Damage);
+                }
+            }
+            else if (Body != null)
+            {
+                // 预警闪烁：黄色高频闪。
+                Body.Modulate =
+                    MathF.Floor((float)(Godot.Time.GetTicksMsec() % 120) / 60f) == 0f
+                        ? new Color(1f, 0.9f, 0.3f)
+                        : RestorePreviewColor();
+            }
+
+            return; // 前摇中：不移动。
         }
 
+        if (_windup.CanBegin && GlobalPosition.DistanceTo(player.GlobalPosition) <= TouchRange)
+        {
+            _windup.Begin();
+            return;
+        }
+
+        _windup.Tick(delta);
+
         RunAi(player);
+    }
+
+    private Color RestorePreviewColor()
+    {
+        return Plan switch
+        {
+            { IsBoss: true } => new Color(0.62f, 0.12f, 0.12f),
+            { Affix: EliteAffix.Sturdy } => new Color(0.95f, 0.55f, 0.15f),
+            { Affix: EliteAffix.Cunning } => new Color(0.95f, 0.85f, 0.25f),
+            { Affix: EliteAffix.Rich } => new Color(0.98f, 0.75f, 0.4f),
+            _ => AliveColor,
+        };
     }
 
     private void RunAi(PlayerController player)
@@ -181,8 +221,20 @@ public partial class BasicEnemyController : CharacterBody2D, IHitReceiver, ITarg
             UpdateHealthBar();
         }
 
-        var velocity =
-            decision.State == EnemyAiState.Idle ? Vector2.Zero : decision.Direction * Speed;
+        // 追击方向优先走导航路径（绕墙）；无导航地图时 agent 退化为直线目标。
+        var moveDirection = decision.Direction;
+        if (decision.State == EnemyAiState.Chase && _navAgent != null)
+        {
+            _navAgent.TargetPosition = player.GlobalPosition;
+            var next = _navAgent.GetNextPathPosition();
+            var offset = next - GlobalPosition;
+            if (offset.LengthSquared() > 1f)
+            {
+                moveDirection = offset.Normalized();
+            }
+        }
+
+        var velocity = decision.State == EnemyAiState.Idle ? Vector2.Zero : moveDirection * Speed;
         velocity += new Vector2(_knockback.X, _knockback.Y);
 
         if (velocity == Vector2.Zero)

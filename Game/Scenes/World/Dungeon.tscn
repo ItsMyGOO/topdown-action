@@ -8,14 +8,7 @@
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_portal_to_town"]
 size = Vector2(48, 48)
 
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_wall_top"]
-size = Vector2(16, 180)
 
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_wall_bottom"]
-size = Vector2(16, 140)
-
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_gate"]
-size = Vector2(18, 60)
 
 [node name="Dungeon" type="Node2D"]
 script = ExtResource("1_worldroot")
@@ -41,8 +34,8 @@ texture = ExtResource("4_portal")
 [node name="WallTop" type="StaticBody2D" parent="YSort"]
 position = Vector2(420, 90)
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="YSort/WallTop"]
-shape = SubResource("RectangleShape2D_wall_top")
+[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="YSort/WallTop"]
+polygon = PackedVector2Array(-8, -90, 8, -90, 8, 90, -8, 90)
 
 [node name="Visual" type="Polygon2D" parent="YSort/WallTop"]
 polygon = PackedVector2Array(-8, -90, 8, -90, 8, 90, -8, 90)
@@ -51,8 +44,8 @@ color = Color(0.22, 0.19, 0.25, 1)
 [node name="WallBottom" type="StaticBody2D" parent="YSort"]
 position = Vector2(420, 310)
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="YSort/WallBottom"]
-shape = SubResource("RectangleShape2D_wall_bottom")
+[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="YSort/WallBottom"]
+polygon = PackedVector2Array(-8, -70, 8, -70, 8, 70, -8, 70)
 
 [node name="Visual" type="Polygon2D" parent="YSort/WallBottom"]
 polygon = PackedVector2Array(-8, -70, 8, -70, 8, 70, -8, 70)
@@ -61,8 +54,8 @@ color = Color(0.22, 0.19, 0.25, 1)
 [node name="BossGate" type="StaticBody2D" parent="YSort" groups=["boss_gate"]]
 position = Vector2(420, 210)
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="YSort/BossGate"]
-shape = SubResource("RectangleShape2D_gate")
+[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="YSort/BossGate"]
+polygon = PackedVector2Array(-9, -30, 9, -30, 9, 30, -9, 30)
 
 [node name="Visual" type="Polygon2D" parent="YSort/BossGate"]
 polygon = PackedVector2Array(-9, -30, 9, -30, 9, 30, -9, 30)

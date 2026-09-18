@@ -21,3 +21,5 @@ shape = SubResource("CircleShape2D_body")
 position = Vector2(0, -22)
 visible = false
 script = ExtResource("2_hpbar")
+
+[node name="NavigationAgent2D" type="NavigationAgent2D" parent="."]

@@ -33,6 +33,7 @@ func _initialize() -> void:
 	_generate_tileset()
 	_generate_orb()
 	_generate_markers()
+	_generate_projectile()
 	quit(0)
 
 
@@ -186,6 +187,19 @@ func _generate_orb() -> void:
 				else:
 					img.set_pixel(x, y, Color8(255, 130, 120))
 	img.save_png(OUT_DIR + "/orb.png")
+
+
+func _generate_projectile() -> void:
+	# 投射物：8x8 蓝白能量弹（带尾迹感）
+	var img := _new_image(8, 8)
+	var bolt := Color8(120, 200, 255)
+	var core := Color8(230, 245, 255)
+	var tail := Color8(60, 120, 220)
+	_rect(img, 2, 1, 5, 6, bolt)
+	_rect(img, 3, 2, 3, 4, core)
+	_rect(img, 1, 3, 1, 2, tail)
+	_rect(img, 6, 3, 1, 2, tail)
+	img.save_png(OUT_DIR + "/projectile.png")
 
 
 func _new_image(w: int, h: int) -> Image:

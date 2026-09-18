@@ -1,13 +1,16 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene load_steps=4 format=3]
 
 [ext_resource type="Script" path="res://Game/Scenes/Skills/ProjectileSkillEffect.cs" id="1_proj"]
+[ext_resource type="Texture2D" path="res://Game/Art/Pixel/projectile.png" id="2_ptex"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_hit"]
-radius = 4.0
+radius = 6.0
 
 [node name="ProjectileSkillEffect" type="Area2D"]
 script = ExtResource("1_proj")
 
+[node name="Sprite" type="Sprite2D" parent="."]
+texture = ExtResource("2_ptex")
+
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 shape = SubResource("CircleShape2D_hit")
-

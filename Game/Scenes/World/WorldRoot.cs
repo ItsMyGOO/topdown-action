@@ -67,6 +67,7 @@ public partial class WorldRoot : Node2D
         if (DungeonMode)
         {
             SpawnDungeonEnemies();
+            BakeDungeonNavigation(excludeGate: true);
         }
         LootPickupScene ??= GD.Load<PackedScene>("res://Game/Scenes/Items/LootPickup.tscn");
         HealthOrbScene ??= GD.Load<PackedScene>("res://Game/Scenes/Items/HealthOrb.tscn");
@@ -127,6 +128,7 @@ public partial class WorldRoot : Node2D
     private int _dungeonTrashDown;
     private StaticBody2D? _bossGate;
     private bool _wasInteractDown;
+    private NavigationRegion2D? _dungeonNavigation;
 
     /// <summary>
     /// 地下城敌人铺设：网格排布 18 普通怪 + 3 Boss。
@@ -278,6 +280,57 @@ public partial class WorldRoot : Node2D
     }
 
     /// <summary>
+    /// 运行时烘焙地下城导航网格（墙体为障碍；门按需排除）。
+    /// </summary>
+    private void BakeDungeonNavigation(bool excludeGate)
+    {
+        var navigationPolygon = new NavigationPolygon
+        {
+            // 默认 ParsedGeometryType 是 MeshInstances；墙体是 StaticBody2D，必须显式切到 StaticColliders。
+            ParsedGeometryType = NavigationPolygon.ParsedGeometryTypeEnum.StaticColliders,
+            AgentRadius = 8f,
+        };
+
+        // 可走区域 outline（整图外框）；parse 收集的墙体障碍将从中裁剪。
+        // 4.6 C#：outline 为 Vector2[] 参数。
+        navigationPolygon.AddOutline([
+            new Vector2(0f, 0f),
+            new Vector2(640f, 0f),
+            new Vector2(640f, 380f),
+            new Vector2(0f, 380f),
+        ]);
+        var sourceGeometry = new NavigationMeshSourceGeometryData2D();
+
+        var root = GetNodeOrNull("YSort") ?? this;
+
+        // 门永远排除在烘焙外：导航上门洞恒可走，实际通行由门的物理开关控制。
+        Node? gateHolder = null;
+        if (excludeGate && _bossGate?.GetParent() != null)
+        {
+            gateHolder = _bossGate.GetParent();
+            gateHolder.RemoveChild(_bossGate);
+        }
+
+        NavigationServer2D.ParseSourceGeometryData(
+            navigationPolygon,
+            sourceGeometry,
+            root,
+            Callable.From(() => { })
+        );
+        NavigationServer2D.BakeFromSourceGeometryData(navigationPolygon, sourceGeometry);
+
+        gateHolder?.AddChild(_bossGate!);
+
+        if (_dungeonNavigation == null)
+        {
+            _dungeonNavigation = new NavigationRegion2D();
+            AddChild(_dungeonNavigation);
+        }
+
+        _dungeonNavigation.NavigationPolygon = navigationPolygon;
+    }
+
+    /// <summary>
     /// 小怪清空后开启 Boss 房门。
     /// </summary>
     private void OpenBossGate()
@@ -289,9 +342,9 @@ public partial class WorldRoot : Node2D
 
         foreach (var child in _bossGate.GetChildren())
         {
-            if (child is CollisionShape2D shape)
+            if (child is CollisionPolygon2D polygon)
             {
-                shape.SetDeferred("disabled", true);
+                polygon.SetDeferred("disabled", true);
             }
         }
 

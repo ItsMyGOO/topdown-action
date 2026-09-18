@@ -88,7 +88,7 @@ public partial class PlayerController : CharacterBody2D
     public ClassDefinition Class => ClassDatabase.Get(_session.ClassId);
 
     /// <summary>
-    /// 当前攻击伤害（（武器 Power + 力量天赋 + 暴虐 Paragon）× 职业倍率；未持武器为基础 1）。
+    /// 当前攻击伤害（（武器 Power + 力量天赋 + 暴虐 Paragon）× 职业倍率；未持武器为基础 4）。
     /// </summary>
     public int AttackDamage =>
         Math.Max(
@@ -96,7 +96,7 @@ public partial class PlayerController : CharacterBody2D
             (int)
                 Math.Round(
                     (
-                        (Equipment.Weapon?.Power ?? 1)
+                        (Equipment.Weapon?.Power ?? 4)
                         + _talentStats.BonusDamage
                         + _paragonStats.BonusDamage
                     ) * Class.DamageMultiplier
@@ -754,9 +754,11 @@ public partial class PlayerController : CharacterBody2D
                 }
 
                 var proj = _projectileEffectScene.Instantiate<ProjectileSkillEffect>();
+                proj.Source = this;
                 proj.GlobalPosition = GlobalPosition;
                 proj.Direction = direction;
                 proj.AttackId = def.SkillId;
+                proj.Damage = AttackDamage;
                 parent.AddChild(proj);
                 break;
             case SkillEffectKind.AoeStrike:
