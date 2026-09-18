@@ -35,19 +35,24 @@ public partial class TownController : Node2D
         _tierShrine = GetNodeOrNull<Area2D>("YSort/TierShrine");
         _portalToDungeon = GetNodeOrNull<Area2D>("YSort/PortalToDungeon");
         _stashBox = GetNodeOrNull<Area2D>("YSort/StashBox");
-        _stashPanel = GetNodeOrNull<GodotGameTemplate.Game.UI.Stash.StashPanel>(
-            "Hud/Margin/VBox/StashPanel"
-        );
+        _stashPanel = GetNodeOrNull<GodotGameTemplate.Game.UI.Stash.StashPanel>("Hud/StashPanel");
         _portalToWorld = GetNodeOrNull<Area2D>("YSort/PortalToWorld");
         _session = GetNodeOrNull<GameSession>("/root/GameSession");
         _session?.Potions.Refill();
     }
 
+    private bool _wasInteractDown;
+
     public override void _PhysicsProcess(double delta)
     {
         UpdateInteractPrompt();
 
-        if (!Input.IsActionJustPressed("interact"))
+        // D4 式：站在交互物上左键点击触发（E 键保留为备用）。
+        var interactDown = Input.IsMouseButtonPressed(MouseButton.Left);
+        var interactClicked = interactDown && !_wasInteractDown;
+        _wasInteractDown = interactDown;
+
+        if (!interactClicked && !Input.IsActionJustPressed("interact"))
         {
             return;
         }
@@ -201,7 +206,7 @@ public partial class TownController : Node2D
         label.Visible = prompt != null;
         if (prompt != null)
         {
-            label.Text = $"按 E 交互：{prompt}";
+            label.Text = $"左键点击交互：{prompt}";
         }
     }
 

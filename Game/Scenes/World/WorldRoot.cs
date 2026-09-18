@@ -43,6 +43,11 @@ public partial class WorldRoot : Node2D
     private const int GroundTilesY = 12;
     private const int GroundTileSize = 32;
     private const double OrbChanceNormal = 0.30;
+
+    /// <summary>
+    /// 地下城小怪伤害缩放（清怪阶段难度调优）。
+    /// </summary>
+    private const float DungeonTrashDamageScale = 0.7f;
     private const int GroundSeed = 7;
 
     private Node? _lootContainer;
@@ -81,9 +86,16 @@ public partial class WorldRoot : Node2D
             if (DungeonMode && !enemy.IsBoss)
             {
                 _dungeonTrashTotal++;
+                // 地下城小怪伤害打折：清怪阶段更宽容。
+                enemy.ApplyWorldTier(
+                    tier.EnemyHpMultiplier,
+                    tier.EnemyDamageMultiplier * DungeonTrashDamageScale
+                );
             }
-
-            enemy.ApplyWorldTier(tier.EnemyHpMultiplier, tier.EnemyDamageMultiplier);
+            else
+            {
+                enemy.ApplyWorldTier(tier.EnemyHpMultiplier, tier.EnemyDamageMultiplier);
+            }
 
             var plan = enemy.IsBoss
                 ? EliteRoller.Boss()
@@ -114,6 +126,7 @@ public partial class WorldRoot : Node2D
     private int _dungeonTrashTotal;
     private int _dungeonTrashDown;
     private StaticBody2D? _bossGate;
+    private bool _wasInteractDown;
 
     /// <summary>
     /// 地下城敌人铺设：网格排布 18 普通怪 + 3 Boss。
@@ -123,11 +136,11 @@ public partial class WorldRoot : Node2D
         var enemyScene = GD.Load<PackedScene>("res://Game/Scenes/Enemies/BasicEnemy.tscn");
         var container = GetNodeOrNull("YSort") ?? this;
 
-        // 小怪区（x < 420）：18 只网格铺开。
-        for (var i = 0; i < 18; i++)
+        // 小怪区（x < 420）：10 只稀疏分布（难度调优：数量与密度下调）。
+        for (var i = 0; i < 10; i++)
         {
             var enemy = enemyScene.Instantiate<BasicEnemyController>();
-            enemy.Position = new Vector2(90f + (i % 6) * 55f, 60f + (i / 6) * 60f);
+            enemy.Position = new Vector2(140f + (i % 5) * 55f, 90f + (i / 5) * 75f);
             container.AddChild(enemy);
         }
 
@@ -146,7 +159,11 @@ public partial class WorldRoot : Node2D
         UpdateDungeonPrompt();
         UpdateInteractPrompt();
 
-        if (!Input.IsActionJustPressed("interact"))
+        var interactDown = Input.IsMouseButtonPressed(MouseButton.Left);
+        var interactClicked = interactDown && !_wasInteractDown;
+        _wasInteractDown = interactDown;
+
+        if (!interactClicked && !Input.IsActionJustPressed("interact"))
         {
             return;
         }
@@ -388,7 +405,7 @@ public partial class WorldRoot : Node2D
         {
             // 仅在站上出口时覆盖进度文本；离开时交回 UpdateDungeonPrompt 管理。
             label.Visible = true;
-            label.Text = "按 E 交互：返回城镇";
+            label.Text = "左键点击交互：返回城镇";
         }
     }
 

@@ -180,6 +180,7 @@ public partial class PlayerController : CharacterBody2D
     public TouchInputAdapter TouchInput => _touchInput;
 
     private bool _wasLeftMouseDown;
+    private bool _suppressLeftUntilRelease;
 
     private PlayerAttackState _attackState = default!;
     private StateMachine<ActorContext> _stateMachine = default!;
@@ -188,6 +189,13 @@ public partial class PlayerController : CharacterBody2D
     {
         // 供 UI 快速定位玩家。
         AddToGroup("player");
+
+        // 场景切入（含死亡回城）时若左键仍按住，抑制其输入直到松开，
+        // 避免复活后立刻“幽灵移动”到光标处。
+        if (Godot.Input.IsMouseButtonPressed(MouseButton.Left))
+        {
+            _suppressLeftUntilRelease = true;
+        }
 
         _session =
             GetNodeOrNull<GameSession>("/root/GameSession")
@@ -776,6 +784,18 @@ public partial class PlayerController : CharacterBody2D
     private bool HandleLeftClick()
     {
         var isDown = Godot.Input.IsMouseButtonPressed(MouseButton.Left);
+
+        if (_suppressLeftUntilRelease)
+        {
+            if (isDown)
+            {
+                _wasLeftMouseDown = isDown;
+                return false;
+            }
+
+            _suppressLeftUntilRelease = false;
+        }
+
         var justPressed = isDown && !_wasLeftMouseDown;
         _wasLeftMouseDown = isDown;
 
