@@ -95,6 +95,7 @@ public partial class TalentPanel : PanelContainer
 
         var level = _player.Leveling?.Level ?? 1;
         _player.SessionTalents.Allocate(talentId, level);
+        _player.SaveProgress();
         Refresh();
     }
 

@@ -89,6 +89,7 @@ public partial class ParagonPanel : PanelContainer
 
         var level = _player.Leveling?.Level ?? 1;
         _player.SessionParagon.Allocate(category, level);
+        _player.SaveProgress();
         Refresh();
     }
 

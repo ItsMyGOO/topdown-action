@@ -544,6 +544,7 @@ public partial class PlayerController : CharacterBody2D
         {
             _skillToastMessage = $"升级! Lv.{leveling.Level}";
             _skillToastRemainingSeconds = 2.0d;
+            _session.Save(); // 升级即存档，防进度丢失
         }
     }
 
@@ -572,6 +573,7 @@ public partial class PlayerController : CharacterBody2D
         {
             _respawnQueued = true;
             ApplyDeathPenalty();
+            _session.Save(); // 死亡惩罚落盘
             CallDeferred(nameof(RespawnInTown));
         }
     }
@@ -865,6 +867,7 @@ public partial class PlayerController : CharacterBody2D
         if (ok)
         {
             loot.Pick();
+            _session.Save(); // 拾取即存档
         }
 
         return true;

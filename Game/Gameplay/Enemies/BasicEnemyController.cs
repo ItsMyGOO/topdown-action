@@ -84,6 +84,7 @@ public partial class BasicEnemyController : CharacterBody2D, IHitReceiver, ITarg
     private readonly KnockbackModel _knockback = new();
     private readonly EnemyAttackWindup _windup = new(windupSeconds: 0.6, cooldownSeconds: 0.8);
     private NavigationAgent2D? _navAgent;
+    private float _regenAccumulator;
     private Vector2 _homePosition;
     private double _hitFlashRemaining;
     private float _animClock;
@@ -186,7 +187,7 @@ public partial class BasicEnemyController : CharacterBody2D, IHitReceiver, ITarg
 
         _windup.Tick(delta);
 
-        RunAi(player);
+        RunAi(player, delta);
     }
 
     private Color RestorePreviewColor()
@@ -201,7 +202,7 @@ public partial class BasicEnemyController : CharacterBody2D, IHitReceiver, ITarg
         };
     }
 
-    private void RunAi(PlayerController player)
+    private void RunAi(PlayerController player, double delta)
     {
         var decision = _ai.Evaluate(
             new EnemyAiSnapshot(
@@ -217,8 +218,18 @@ public partial class BasicEnemyController : CharacterBody2D, IHitReceiver, ITarg
 
         if (decision.ReachedHome)
         {
-            Hp = MaxHp;
-            UpdateHealthBar();
+            // D4 式：脱战回家改为每秒约 5% 的缓慢回复（累积器避免小数被取整放大）。
+            _regenAccumulator += MaxHp * 0.05f * (float)delta;
+            if (_regenAccumulator >= 1f)
+            {
+                var healed = Math.Min(MaxHp - Hp, (int)_regenAccumulator);
+                _regenAccumulator -= (int)_regenAccumulator;
+                if (healed > 0)
+                {
+                    Hp += healed;
+                    UpdateHealthBar();
+                }
+            }
         }
 
         // 追击方向优先走导航路径（绕墙）；无导航地图时 agent 退化为直线目标。

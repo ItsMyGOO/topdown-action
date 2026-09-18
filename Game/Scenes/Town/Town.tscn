@@ -36,6 +36,7 @@ script = ExtResource("2_townctl")
 position = Vector2(160, 90)
 
 [node name="Vendor" type="Area2D" parent="YSort" groups=["vendor"]]
+collision_mask = 2
 position = Vector2(224, 90)
 monitoring = true
 
@@ -47,6 +48,7 @@ offset = Vector2(0, -10)
 shape = SubResource("RectangleShape2D_vendor")
 
 [node name="ClassShrine" type="Area2D" parent="YSort" groups=["class_shrine"]]
+collision_mask = 2
 position = Vector2(160, 160)
 monitoring = true
 
@@ -58,6 +60,7 @@ offset = Vector2(0, -14)
 shape = SubResource("RectangleShape2D_shrine")
 
 [node name="PortalToWorld" type="Area2D" parent="YSort" groups=["portal_to_world"]]
+collision_mask = 2
 position = Vector2(96, 90)
 monitoring = true
 
@@ -69,6 +72,7 @@ offset = Vector2(0, -16)
 shape = SubResource("RectangleShape2D_portal")
 
 [node name="PortalToDungeon" type="Area2D" parent="YSort" groups=["portal_to_dungeon"]]
+collision_mask = 2
 position = Vector2(96, 160)
 monitoring = true
 
@@ -80,6 +84,7 @@ offset = Vector2(0, -16)
 shape = SubResource("RectangleShape2D_dungeonportal")
 
 [node name="TierShrine" type="Area2D" parent="YSort" groups=["tier_shrine"]]
+collision_mask = 2
 position = Vector2(288, 160)
 monitoring = true
 
@@ -91,6 +96,7 @@ offset = Vector2(0, -14)
 shape = SubResource("RectangleShape2D_tiershrine")
 
 [node name="StashBox" type="Area2D" parent="YSort" groups=["stash_box"]]
+collision_mask = 2
 position = Vector2(288, 90)
 monitoring = true
 

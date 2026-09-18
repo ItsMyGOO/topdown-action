@@ -20,6 +20,7 @@ DungeonMode = true
 position = Vector2(60, 60)
 
 [node name="PortalToTown" type="Area2D" parent="YSort" groups=["portal_to_town"]]
+collision_mask = 2
 position = Vector2(60, 320)
 visible = false
 monitoring = false
