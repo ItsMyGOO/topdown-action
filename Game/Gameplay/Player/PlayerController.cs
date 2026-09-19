@@ -427,6 +427,13 @@ public partial class PlayerController : CharacterBody2D
         MoveAndSlide();
 
         _context.Velocity = Velocity;
+
+        // 移动时朝向跟随速度方向（驱动 8 向行走动画行选择）。
+        if (Velocity.LengthSquared() > 1f)
+        {
+            _context.Facing = Velocity.Normalized();
+        }
+
         View?.Sync(_context, (float)delta);
     }
 
