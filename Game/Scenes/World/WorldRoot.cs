@@ -284,42 +284,33 @@ public partial class WorldRoot : Node2D
     /// </summary>
     private void BakeDungeonNavigation(bool excludeGate)
     {
-        var navigationPolygon = new NavigationPolygon
-        {
-            // 默认 ParsedGeometryType 是 MeshInstances；墙体是 StaticBody2D，必须显式切到 StaticColliders。
-            ParsedGeometryType = NavigationPolygon.ParsedGeometryTypeEnum.StaticColliders,
-            AgentRadius = 8f,
-        };
+        // 手写导航几何（不依赖 parse 自动收集）：整图外框 + 右侧「墙+Boss房」挖除洞，
+        // 洞的边界在门洞 y160..260 处内收，天然形成左右连通的走廊。
+        // 门物理体不参与导航：实际通行由门的碰撞开关控制（Bake 在开门前执行一次即可）。
+        var navigationPolygon = new NavigationPolygon { AgentRadius = 8f };
 
-        // 可走区域 outline（整图外框）；parse 收集的墙体障碍将从中裁剪。
-        // 4.6 C#：outline 为 Vector2[] 参数。
+        // 外框：整图可走。
         navigationPolygon.AddOutline([
             new Vector2(0f, 0f),
             new Vector2(640f, 0f),
             new Vector2(640f, 380f),
             new Vector2(0f, 380f),
         ]);
-        var sourceGeometry = new NavigationMeshSourceGeometryData2D();
 
-        var root = GetNodeOrNull("YSort") ?? this;
+        // 挖除洞：右侧墙带（x407..433）+ Boss 房（x433..640），门洞 y160..260 处走廊保留。
+        // 顶点顺序与外框相反（洞）。
+        navigationPolygon.AddOutline([
+            new Vector2(407f, 0f),
+            new Vector2(407f, 160f),
+            new Vector2(433f, 160f),
+            new Vector2(433f, 260f),
+            new Vector2(407f, 260f),
+            new Vector2(407f, 380f),
+            new Vector2(640f, 380f),
+            new Vector2(640f, 0f),
+        ]);
 
-        // 门永远排除在烘焙外：导航上门洞恒可走，实际通行由门的物理开关控制。
-        Node? gateHolder = null;
-        if (excludeGate && _bossGate?.GetParent() != null)
-        {
-            gateHolder = _bossGate.GetParent();
-            gateHolder.RemoveChild(_bossGate);
-        }
-
-        NavigationServer2D.ParseSourceGeometryData(
-            navigationPolygon,
-            sourceGeometry,
-            root,
-            Callable.From(() => { })
-        );
-        NavigationServer2D.BakeFromSourceGeometryData(navigationPolygon, sourceGeometry);
-
-        gateHolder?.AddChild(_bossGate!);
+        navigationPolygon.MakePolygonsFromOutlines();
 
         if (_dungeonNavigation == null)
         {
