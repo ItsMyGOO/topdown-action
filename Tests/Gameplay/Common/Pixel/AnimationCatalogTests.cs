@@ -49,13 +49,29 @@ public sealed class AnimationCatalogTests
     }
 
     [Fact]
-    public void RowFor_Vector_MainAxisSelectsRow()
+    public void RowFor_CardinalDirections_MatchStandardOrder()
+    {
+        // 行序 E, SE, S, SW, W, NW, N, NE（行 0 起顺时针）。
+        Assert.Equal(0, AnimationCatalog.RowFor(FacingDirection.Right));
+        Assert.Equal(1, AnimationCatalog.RowFor(FacingDirection.DownRight));
+        Assert.Equal(2, AnimationCatalog.RowFor(FacingDirection.Down));
+        Assert.Equal(3, AnimationCatalog.RowFor(FacingDirection.DownLeft));
+        Assert.Equal(4, AnimationCatalog.RowFor(FacingDirection.Left));
+        Assert.Equal(5, AnimationCatalog.RowFor(FacingDirection.UpLeft));
+        Assert.Equal(6, AnimationCatalog.RowFor(FacingDirection.Up));
+        Assert.Equal(7, AnimationCatalog.RowFor(FacingDirection.UpRight));
+    }
+
+    [Fact]
+    public void RowFor_Vector_SnapsToNearestOctant()
     {
         Assert.Equal(0, AnimationCatalog.RowFor(Vector2.Right));
-        Assert.Equal(3, AnimationCatalog.RowFor(Vector2.Down));
-        Assert.Equal(9, AnimationCatalog.RowFor(Vector2.Left));
+        Assert.Equal(2, AnimationCatalog.RowFor(Vector2.Down));
+        Assert.Equal(4, AnimationCatalog.RowFor(Vector2.Left));
         Assert.Equal(6, AnimationCatalog.RowFor(Vector2.Up));
-        Assert.Equal(3, AnimationCatalog.RowFor(Vector2.Zero)); // 零向量默认朝下。
+        Assert.Equal(1, AnimationCatalog.RowFor(new Vector2(1f, 0.5f))); // 右下。
+        Assert.Equal(7, AnimationCatalog.RowFor(new Vector2(1f, -0.5f))); // 右上。
+        Assert.Equal(2, AnimationCatalog.RowFor(Vector2.Zero)); // 零向量默认朝下。
     }
 
     [Fact]

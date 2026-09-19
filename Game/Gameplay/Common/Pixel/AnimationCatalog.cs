@@ -72,14 +72,18 @@ public readonly record struct AnimDefinition(
 }
 
 /// <summary>
-/// 行 → 朝向映射（骑士包每行一个朝向；实测行 0=右、行 3=下、行 6=上、行 9=左）。
+/// 8 向朝向（行 0=右起顺时针：右/右下/下/左下/左/左上/上/右上）。
 /// </summary>
 public enum FacingDirection
 {
     Right,
-    Up,
-    Left,
+    DownRight,
     Down,
+    DownLeft,
+    Left,
+    UpLeft,
+    Up,
+    UpRight,
 }
 
 /// <summary>
@@ -88,20 +92,12 @@ public enum FacingDirection
 public static class AnimationCatalog
 {
     /// <summary>
-    /// 朝向 → 表行号（实测映射；其余行为同动作变体备用）。
+    /// 朝向 → 表行号（行序 E, SE, S, SW, W, NW, N, NE = 枚举序）。
     /// </summary>
-    public static int RowFor(FacingDirection direction) =>
-        direction switch
-        {
-            FacingDirection.Right => 0,
-            FacingDirection.Down => 3,
-            FacingDirection.Up => 6,
-            FacingDirection.Left => 9,
-            _ => 3,
-        };
+    public static int RowFor(FacingDirection direction) => (int)direction;
 
     /// <summary>
-    /// 朝向向量 → 行（主轴判定：横向取左右、纵向取上下）。
+    /// 朝向向量 → 最近 8 向行（y 轴向下为正；零向量默认朝下）。
     /// </summary>
     public static int RowFor(Vector2 facing)
     {
@@ -110,9 +106,11 @@ public static class AnimationCatalog
             return RowFor(FacingDirection.Down);
         }
 
-        return MathF.Abs(facing.X) >= MathF.Abs(facing.Y)
-            ? RowFor(facing.X >= 0 ? FacingDirection.Right : FacingDirection.Left)
-            : RowFor(facing.Y >= 0 ? FacingDirection.Down : FacingDirection.Up);
+        var angle = MathF.Atan2(facing.Y, facing.X);
+        var octant = (int)MathF.Round(angle / (MathF.PI / 4f));
+        var index = ((octant % 8) + 8) % 8;
+
+        return RowFor((FacingDirection)index);
     }
 
     public static AnimDefinition Get(PlayerAnim anim) =>
