@@ -1,4 +1,5 @@
 using System;
+using Godot;
 
 namespace GodotGameTemplate.Gameplay.Common.Pixel;
 
@@ -71,10 +72,49 @@ public readonly record struct AnimDefinition(
 }
 
 /// <summary>
+/// 行 → 朝向映射（骑士包每行一个朝向；实测行 0=右、行 3=下、行 6=上、行 9=左）。
+/// </summary>
+public enum FacingDirection
+{
+    Right,
+    Up,
+    Left,
+    Down,
+}
+
+/// <summary>
 /// 动画目录（纯逻辑）：动作 → 定义 与 帧推进。
 /// </summary>
 public static class AnimationCatalog
 {
+    /// <summary>
+    /// 朝向 → 表行号（实测映射；其余行为同动作变体备用）。
+    /// </summary>
+    public static int RowFor(FacingDirection direction) =>
+        direction switch
+        {
+            FacingDirection.Right => 0,
+            FacingDirection.Down => 3,
+            FacingDirection.Up => 6,
+            FacingDirection.Left => 9,
+            _ => 3,
+        };
+
+    /// <summary>
+    /// 朝向向量 → 行（主轴判定：横向取左右、纵向取上下）。
+    /// </summary>
+    public static int RowFor(Vector2 facing)
+    {
+        if (facing == Vector2.Zero)
+        {
+            return RowFor(FacingDirection.Down);
+        }
+
+        return MathF.Abs(facing.X) >= MathF.Abs(facing.Y)
+            ? RowFor(facing.X >= 0 ? FacingDirection.Right : FacingDirection.Left)
+            : RowFor(facing.Y >= 0 ? FacingDirection.Down : FacingDirection.Up);
+    }
+
     public static AnimDefinition Get(PlayerAnim anim) =>
         anim switch
         {

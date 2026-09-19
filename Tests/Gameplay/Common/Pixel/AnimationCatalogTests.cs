@@ -1,3 +1,4 @@
+using Godot;
 using GodotGameTemplate.Gameplay.Common.Pixel;
 
 namespace GodotGameTemplate.Tests.Gameplay.Common.Pixel;
@@ -45,6 +46,16 @@ public sealed class AnimationCatalogTests
         var melee = AnimationCatalog.Get(PlayerAnim.Melee);
 
         Assert.Equal(melee.FrameCount - 1, AnimationCatalog.FrameFor(999f, melee));
+    }
+
+    [Fact]
+    public void RowFor_Vector_MainAxisSelectsRow()
+    {
+        Assert.Equal(0, AnimationCatalog.RowFor(Vector2.Right));
+        Assert.Equal(3, AnimationCatalog.RowFor(Vector2.Down));
+        Assert.Equal(9, AnimationCatalog.RowFor(Vector2.Left));
+        Assert.Equal(6, AnimationCatalog.RowFor(Vector2.Up));
+        Assert.Equal(3, AnimationCatalog.RowFor(Vector2.Zero)); // 零向量默认朝下。
     }
 
     [Fact]
