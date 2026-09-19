@@ -368,7 +368,7 @@ public partial class PlayerController : CharacterBody2D
             && _context.Intent.AttackPressed
         )
         {
-            View?.PlayOnce(PlayerAnim.Melee);
+            View?.PlayOnce("melee");
             _stateMachine.ChangeState(_attackState);
         }
 
@@ -428,12 +428,13 @@ public partial class PlayerController : CharacterBody2D
 
         _context.Velocity = Velocity;
 
-        // 移动时朝向跟随速度方向（驱动 8 向行走动画行选择）。
+        // 移动时朝向跟随速度方向（驱动 8 向行走动画选择）。
         if (Velocity.LengthSquared() > 1f)
         {
             _context.Facing = Velocity.Normalized();
         }
 
+        View?.SetDirection(DirectionSuffix(_context.Facing));
         View?.Sync(_context, (float)delta);
     }
 
@@ -577,7 +578,7 @@ public partial class PlayerController : CharacterBody2D
         }
 
         _context.Health.TakeDamage(DamageMath.Apply(rawDamage, Armor));
-        View?.PlayOnce(PlayerAnim.Hurt);
+        View?.PlayOnce("hurt");
 
         if (_context.Health.IsEmpty)
         {
@@ -631,7 +632,7 @@ public partial class PlayerController : CharacterBody2D
 
         ClearClickToMoveDestination();
         _lastCastPoint = point;
-        View?.PlayOnce(PlayerAnim.Cast);
+        View?.PlayOnce("cast");
         _skillCastState.Configure(slot, direction, point);
         _stateMachine.ChangeState(_skillCastState);
     }
@@ -646,7 +647,7 @@ public partial class PlayerController : CharacterBody2D
 
         ClearClickToMoveDestination();
         _lastCastPoint = point;
-        View?.PlayOnce(PlayerAnim.Cast);
+        View?.PlayOnce("cast");
         _skillCastState.Configure(SkillSlot.Secondary, direction, point);
         _stateMachine.ChangeState(_skillCastState);
     }
@@ -1053,6 +1054,29 @@ public partial class PlayerController : CharacterBody2D
     {
         _clickToMoveModel.ClearDestination();
         ClickToMove?.Stop();
+    }
+
+    private static string DirectionSuffix(Vector2 facing)
+    {
+        if (facing == Vector2.Zero)
+        {
+            return "s";
+        }
+
+        var angle = MathF.Atan2(facing.Y, facing.X);
+        var octant = (int)MathF.Round(angle / (MathF.PI / 4f));
+
+        return (((octant % 8) + 8) % 8) switch
+        {
+            0 => "e",
+            1 => "se",
+            2 => "s",
+            3 => "sw",
+            4 => "w",
+            5 => "nw",
+            6 => "n",
+            _ => "ne",
+        };
     }
 
     private void FaceTowards(Vector2 worldPosition)
