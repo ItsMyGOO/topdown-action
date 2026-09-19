@@ -14,7 +14,7 @@ public sealed class AnimationCatalogTests
 
             Assert.True(def.FrameCount > 0, $"{anim} frames");
             Assert.True(def.Fps > 0, $"{anim} fps");
-            Assert.True(def.Columns == 16 && def.Rows == 10, $"{anim} grid");
+            Assert.True(def.Columns == 15 && def.Rows == 8, $"{anim} grid");
         }
     }
 

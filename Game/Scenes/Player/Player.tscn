@@ -25,8 +25,8 @@ script = ExtResource("2_hi4c4")
 
 [node name="Sprite" type="Sprite2D" parent="View"]
 texture = ExtResource("5_sheet")
-hframes = 16
-vframes = 10
+hframes = 15
+vframes = 8
 
 [node name="Camera2D" type="Camera2D" parent="."]
 enabled = true

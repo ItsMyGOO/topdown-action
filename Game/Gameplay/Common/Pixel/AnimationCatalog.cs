@@ -45,8 +45,8 @@ public readonly record struct AnimDefinition(
     bool Loop
 )
 {
-    public const int ColumnsPerSheet = 16;
-    public const int RowsPerSheet = 10;
+    public const int ColumnsPerSheet = 15;
+    public const int RowsPerSheet = 8;
 
     public static AnimDefinition Looping(PlayerAnim anim, int frameCount, float fps) =>
         new(SheetOf(anim), ColumnsPerSheet, RowsPerSheet, frameCount, fps, true);
