@@ -11,8 +11,11 @@ public enum PlayerAnim
     /// <summary>待机（Idle 表，循环）。</summary>
     Idle,
 
-    /// <summary>跑动（Run 表，循环）。</summary>
+    /// <summary>跑动（Run 表，朝右，循环）。</summary>
     Run,
+
+    /// <summary>背身跑动（RunBackwards 表，朝上移动用，循环）。</summary>
+    RunBack,
 
     /// <summary>普攻（Melee 表，单次）。</summary>
     Melee,
@@ -59,6 +62,8 @@ public readonly record struct AnimDefinition(
         {
             PlayerAnim.Run =>
                 "res://Game/Art/2D HD Character Knight/Spritesheets/With shadows/Run.png",
+            PlayerAnim.RunBack =>
+                "res://Game/Art/2D HD Character Knight/Spritesheets/With shadows/RunBackwards.png",
             PlayerAnim.Melee =>
                 "res://Game/Art/2D HD Character Knight/Spritesheets/With shadows/Melee.png",
             PlayerAnim.Cast =>
@@ -118,6 +123,11 @@ public static class AnimationCatalog
         {
             PlayerAnim.Idle => AnimDefinition.Looping(PlayerAnim.Idle, frameCount: 15, fps: 12f),
             PlayerAnim.Run => AnimDefinition.Looping(PlayerAnim.Run, frameCount: 15, fps: 14f),
+            PlayerAnim.RunBack => AnimDefinition.Looping(
+                PlayerAnim.RunBack,
+                frameCount: 15,
+                fps: 14f
+            ),
             PlayerAnim.Melee => AnimDefinition.Once(PlayerAnim.Melee, frameCount: 10, fps: 16f),
             PlayerAnim.Cast => AnimDefinition.Once(PlayerAnim.Cast, frameCount: 10, fps: 14f),
             PlayerAnim.Hurt => AnimDefinition.Once(PlayerAnim.Hurt, frameCount: 6, fps: 12f),
