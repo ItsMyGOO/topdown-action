@@ -97,7 +97,7 @@ public enum FacingDirection
 public static class AnimationCatalog
 {
     /// <summary>
-    /// 朝向 → 表行号（行序 E, SE, S, SW, W, NW, N, NE = 枚举序）。
+    /// 朝向 → 表行号（行序 E, SE, S, SW, W, NW, N, NE = 枚举序；实测不符时改此处映射）。
     /// </summary>
     public static int RowFor(FacingDirection direction) => (int)direction;
 
@@ -113,9 +113,8 @@ public static class AnimationCatalog
 
         var angle = MathF.Atan2(facing.Y, facing.X);
         var octant = (int)MathF.Round(angle / (MathF.PI / 4f));
-        var index = ((octant % 8) + 8) % 8;
 
-        return RowFor((FacingDirection)index);
+        return ((octant % 8) + 8) % 8;
     }
 
     public static AnimDefinition Get(PlayerAnim anim) =>
