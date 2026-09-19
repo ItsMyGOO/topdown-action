@@ -14,6 +14,7 @@ public partial class PlayerView : Node2D
     private float _clock;
     private PlayerAnim _current = PlayerAnim.Idle;
     private AnimDefinition _definition = AnimationCatalog.Get(PlayerAnim.Idle);
+    private int _row;
 
     public override void _Ready()
     {
@@ -62,5 +63,22 @@ public partial class PlayerView : Node2D
         _sprite.Texture = GD.Load<Texture2D>(definition.Sheet);
         _sprite.Hframes = definition.Columns;
         _sprite.Vframes = definition.Rows;
+    }
+
+    /// <summary>
+    /// 应用八向专表（存在时调用）：同网格规格，行 0 = 该方向的动画。
+    /// </summary>
+    private void UseDirectionalSheet(FacingDirection facing)
+    {
+        var path = EightDirectionSheets.SheetPath(facing);
+        if (path == null)
+        {
+            return;
+        }
+
+        _sprite.Texture = GD.Load<Texture2D>(path);
+        _sprite.Hframes = AnimDefinition.ColumnsPerSheet;
+        _sprite.Vframes = AnimDefinition.RowsPerSheet;
+        _row = 0;
     }
 }
