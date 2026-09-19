@@ -8,6 +8,7 @@ using GodotGameTemplate.Game.Scenes.Skills;
 using GodotGameTemplate.Gameplay.Actors;
 using GodotGameTemplate.Gameplay.Combat;
 using GodotGameTemplate.Gameplay.Combat.Targeting;
+using GodotGameTemplate.Gameplay.Common.Pixel;
 using GodotGameTemplate.Gameplay.Common.StateMachine;
 using GodotGameTemplate.Gameplay.Input;
 using GodotGameTemplate.Gameplay.Input.Commands;
@@ -367,6 +368,7 @@ public partial class PlayerController : CharacterBody2D
             && _context.Intent.AttackPressed
         )
         {
+            View?.PlayOnce(PlayerAnim.Melee);
             _stateMachine.ChangeState(_attackState);
         }
 
@@ -568,6 +570,7 @@ public partial class PlayerController : CharacterBody2D
         }
 
         _context.Health.TakeDamage(DamageMath.Apply(rawDamage, Armor));
+        View?.PlayOnce(PlayerAnim.Hurt);
 
         if (_context.Health.IsEmpty)
         {
@@ -621,6 +624,7 @@ public partial class PlayerController : CharacterBody2D
 
         ClearClickToMoveDestination();
         _lastCastPoint = point;
+        View?.PlayOnce(PlayerAnim.Cast);
         _skillCastState.Configure(slot, direction, point);
         _stateMachine.ChangeState(_skillCastState);
     }
@@ -635,6 +639,7 @@ public partial class PlayerController : CharacterBody2D
 
         ClearClickToMoveDestination();
         _lastCastPoint = point;
+        View?.PlayOnce(PlayerAnim.Cast);
         _skillCastState.Configure(SkillSlot.Secondary, direction, point);
         _stateMachine.ChangeState(_skillCastState);
     }
